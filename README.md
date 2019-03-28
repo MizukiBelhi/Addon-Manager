@@ -12,8 +12,7 @@ Grab the [latest release](https://github.com/MizukiBelhi/Addon-Manager/releases/
 
 * Why does this exist?
 
-The previous [Addon Manager](https://github.com/JTosAddon/Tree-of-Savior-Addon-Manager) runs on Electron, which is rather slow and big.
-
+The previous [Addon Manager](https://github.com/JTosAddon/Tree-of-Savior-Addon-Manager) runs on Electron, which is rather slow and big.  
 To preserve sanity of users we decided to bring the manager to C# and rebuild it from the ground up.
 
 
