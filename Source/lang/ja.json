@@ -1,0 +1,49 @@
+{
+ "TAB": {
+  "SETTINGS": "設定",
+  "ITOS": "IToS",
+  "JTOS": "JToS"
+ },
+ "FOOTER": {
+  "RELOAD": "ページの更新",
+  "SCROLL_TO_TOP": "上に戻る",
+  "OPEN_OFFICIAL_SITE": "公式サイトへ",
+  "TRANSLATE_DESCRIPTION": "説明を翻訳する"
+ },
+ "SETTINGS": {
+  "NEED_UPDATE": "最新のマネージャーにアップデートしてください",
+  "DOWNLOAD": "ダウンロード",
+  "CONFIGURE_FOLDER": "Tree of Saviorのインストールフォルダを指定してください。",
+  "OPEN_FOLDER_BROWSE_DIALOG": "開く",
+  "INVALID_FOLDER": "アドオンをインストールする前に、Tree of Saviorの正しいインストールフォルダを指定してください。",
+  "INSTALLATION_HISTORY": "インストール履歴を",
+  "CLEAR": "初期化する",
+  "CLEAR_DEFAULT_ERROR": "初期化しました",
+  "DISPLAY_UNKNOWN": "不明なインストール済みアドオンを表示する"
+ },
+ "BROWSE": {
+  "SEARCH": "サーチ",
+  "ALL": "All",
+  "INSTALLED": "インストール済み",
+  "UNINSTALLED": "アンインストール",
+  "SHOW_ONLY_UPDATABLE": "UPDATEのみを表示する",
+  "UPDATE_ALL_ADDONS": "全てのアドオンを更新する",
+  "SORT_BY_NAME_ASC": "名前(昇順)",
+  "SORT_BY_NAME_DESC": "名前(降順)",
+  "SORT_BY_DATE_ASC": "日付(昇順)",
+  "SORT_BY_DATE_DESC": "日付(降順)",
+  "SORT_BY_DEVELOPER_NAME": "開発者"
+ },
+ "ADDONS": {
+  "README": "詳細",
+  "CLOSE_README": "閉じる",
+  "INSTALL": "インストール",
+  "UPDATE": "更新",
+  "UNINSTALL": "アンインストール",
+  "UPDATE_LIST_SUCCESS": "をアップデートしました",
+  "UPDATE_LIST_BLANK": "アップデートするアドオンがありません"
+ },
+ "TOS": {
+  "SITE_URL": "http://tos.nexon.co.jp/players"
+ }
+}

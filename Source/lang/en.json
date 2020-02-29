@@ -1,0 +1,49 @@
+{
+    "TAB": {
+        "SETTINGS": "Configuration",
+        "BROWSE": "Browse Addons",
+        "INSTALLED": "Installed Addons"
+    },
+    "FOOTER": {
+        "RELOAD": "RELOAD",
+        "SCROLL_TO_TOP": "BACK TO TOP",
+        "OPEN_OFFICIAL_SITE": "GO TO OFFICIAL SITE",
+        "TRANSLATE_DESCRIPTION": "DESCRIPTION TRANSLATION"
+    },
+    "SETTINGS": {
+        "NEED_UPDATE": "Update needed!",
+        "DOWNLOAD": "Download",
+        "CONFIGURE_FOLDER": "Configure your settings below.\rPlease specify your Tree of Savior install directory path.",
+        "OPEN_FOLDER_BROWSE_DIALOG": "Browse...",
+        "INVALID_FOLDER": "Invalid directory. Please set a proper Tree of Savior directory before continuing.",
+        "INSTALLATION_HISTORY": "Installation History:",
+        "CLEAR": "CLEAR!!",
+        "CLEAR_DEFAULT_ERROR": "Initialize error: Couldn't find required file.",
+        "DISPLAY_UNKNOWN": "Display Unknown Installed Addons"
+    },
+    "BROWSE": {
+        "SEARCH": "Search",
+        "ALL": "All",
+        "INSTALLED": "Installed",
+        "UNINSTALLED": "Uninstalled",
+        "SHOW_ONLY_UPDATABLE": "Show only updatable",
+        "UPDATE_ALL_ADDONS": "Update all",
+        "SORT_BY_NAME_ASC": "Name(asc)",
+        "SORT_BY_NAME_DESC": "Name(desc)",
+        "SORT_BY_DATE_ASC": "Date(asc)",
+        "SORT_BY_DATE_DESC": "Date(desc)",
+        "SORT_BY_DEVELOPER_NAME": "Developer Name"
+    },
+    "ADDONS": {
+        "README": "Readme",
+        "CLOSE_README": "Close",
+        "INSTALL": "Install",
+        "UPDATE": "Update",
+        "UNINSTALL": "Uninstall",
+        "UPDATE_LIST_SUCCESS": " has been updated.",
+        "UPDATE_LIST_BLANK": "There are no addons to update."
+    },
+        "TOS": {
+        "SITE_URL": "https://treeofsavior.com"
+    }
+}
