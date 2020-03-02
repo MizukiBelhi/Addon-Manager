@@ -16,6 +16,7 @@ To preserve sanity of users we decided to bring the manager to C# and rebuild it
 * Source Information
 
 This uses VS2017 please don't PR for newer versions.
+
 All packages are the right version for the lowest possible NET library (4.5)
 
 
