@@ -8,7 +8,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Net.Cache;
 
 namespace AddonManager
 {
@@ -53,56 +52,33 @@ namespace AddonManager
 		/// </summary>
 		static void ProcessQueue()
 		{
-			Debug.WriteLine("ProcessQueue()");
 			if (webClient != null && webClient.IsBusy)
 				return;
 
-
-			Debug.WriteLine("Count()");
 			if (downloadQueue.Count <= 0)
 				return;
 
 			ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
 
-			Debug.WriteLine("BusyCheck()");
-			if (webClient != null && !webClient.IsBusy)
-			{
-				Debug.WriteLine("Disposing webclient");
-				//webClient.Dispose();
-				//webClient = null;
-			}
-
-			if (webClient == null)
-			{
-				Debug.WriteLine("CreateWebClient()");
-
-
-			}
-
 			webClient = new NoKeepAliveWebClient();
 			webClient.CancelAsync();
-			//using (webClient)
-			//{
-				AddonsObject addon = downloadQueue.First().addon.currentDisplay.addon;
-			   // ttps://github.com/" + source.repo + "/releases/download/" + addon.releaseTag + "/" + addon.file + "-" + addon.fileVersion + "." + addon.extension
-				string useSource = string.Format(addonDownloadUrl, downloadQueue.First().addon.currentDisplay.repo ,addon.releaseTag ,addon.file, addon.fileVersion, addon.extension);
 
-				Debug.WriteLine("Downloading from "+useSource.ToString());
+			AddonsObject addon = downloadQueue.First().addon.currentDisplay.addon;
 
-				string fileName = string.Format(addonFileName, addon.file, addon.unicode, addon.fileVersion, addon.extension);
+			string useSource = string.Format(addonDownloadUrl, downloadQueue.First().addon.currentDisplay.repo ,addon.releaseTag ,addon.file, addon.fileVersion, addon.extension);
 
-				Debug.WriteLine(fileName);
+			Debug.WriteLine("Downloading from "+useSource.ToString());
 
-				webClient.Headers.Add("Accept: text/html, application/xhtml+xml, */*");
-				webClient.Headers.Add("User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
-				webClient.DownloadDataCompleted += new DownloadDataCompletedEventHandler((sender, e) => Manager_DownloadComplete(sender, e));
-				webClient.DownloadProgressChanged += downloadQueue.First().ProgressCallback;
-				webClient.DownloadDataAsync(new System.Uri(useSource));
-				//wc.DownloadFileAsync(
-				//	new System.Uri(useSource),
-				//	MainWindow.settings.TosDataFolder + fileName
-				//);
-			//}
+			string fileName = string.Format(addonFileName, addon.file, addon.unicode, addon.fileVersion, addon.extension);
+
+			Debug.WriteLine(fileName);
+
+			webClient.Headers.Add("Accept: text/html, application/xhtml+xml, */*");
+			webClient.Headers.Add("User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
+			webClient.DownloadDataCompleted += new DownloadDataCompletedEventHandler((sender, e) => Manager_DownloadComplete(sender, e));
+			webClient.DownloadProgressChanged += downloadQueue.First().ProgressCallback;
+			webClient.DownloadDataAsync(new System.Uri(useSource));
+
 
 			if (!downloadQueue.First().addon.currentDisplay.isDownloading)
 			{
@@ -199,7 +175,19 @@ namespace AddonManager
 
 			addonObj.currentDisplay.isInstalled = false;
 
-			//addonObj.tabManager.PopulateAddon(addonObj, 0, 0);
+		}
+
+		/// <summary>
+		/// Deletes Addon
+		/// </summary>
+		public static void DeleteAddon(AddonObject addonObj, bool deleteFolder = true)
+		{
+			AddonsObject addon = addonObj.addon;
+			JsonManager.RemoveFile(MainWindow.settings.TosDataFolder, string.Format(addonFileName, addon.file, addon.unicode, addon.fileVersion, addon.extension));
+			if (deleteFolder)
+				RemoveAddonFolder(addonObj.addon);
+
+			addonObj.isInstalled = false;
 		}
 
 
@@ -297,11 +285,7 @@ namespace AddonManager
 				if (e.Error != null)
 				{
 					//there's been an error downloading the addon for whatever reason
-					//we have to remove the file because it still gets created by downloadfileasync
 					Debug.WriteLine(e.Error.Message);
-					//AddonsObject addon = downloadQueue.First().addon.currentDisplay.addon;
-					//JsonManager.RemoveFile(MainWindow.settings.TosDataFolder, string.Format(addonFileName, addon.file, addon.unicode, addon.fileVersion, addon.extension));
-
 				}
 				else
 				{
@@ -317,7 +301,6 @@ namespace AddonManager
 					downloadQueue.First().addon.currentDisplay.isInstalled = true;
 					downloadQueue.First().addon.currentDisplay.isDownloading = false;
 
-					//downloadQueue.First().addon.tabManager.PopulateAddon(downloadQueue.First().addon, 0, 0);
 					downloadQueue.First().addon.tabManager.RemoveFromList(downloadQueue.First().addon);
 					downloadQueue.First().addon.tabManager.AddToInstalledAddons(downloadQueue.First().addon);
 
@@ -327,9 +310,6 @@ namespace AddonManager
 				isDownloadInProgress = false;
 
 				downloadQueue.Remove(downloadQueue.First());
-
-				//webClient.CancelAsync();
-				//webClient.Dispose();
 
 				ProcessQueue();
 			}catch(Exception ex)

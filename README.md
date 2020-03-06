@@ -1,3 +1,6 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/q0fh2wtuyg8ccw8w/branch/master?svg=true)](https://ci.appveyor.com/project/MizukiBelhi/addon-manager/branch/master)
+
+
 # Tree of Savior Addon Manager
 
 Tree of Savior Addon Manager is an application that allows you to easily find and download addons and keep them up to date. This does all of the work for you so you can simply worry about playing the game.

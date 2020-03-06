@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows;
 using System.Net;
 using System.Diagnostics;
-using Semver;
 
 namespace AddonManager
 {
@@ -39,6 +38,18 @@ namespace AddonManager
 		{
 			if (DownloadManager.AddonFileExists(this))
 			{
+				AddonObject obj = this.GetOtherInstalled();
+				if(obj != null)
+				{
+					if (Settings.isTosRunning())
+					{
+						Settings.CauseError("Please close ToS before downloading a different version.", "Close ToS", new ErrorButtonCallback(() => { Settings.CloseTos(); }));
+
+						return;
+					}
+					//Removes current installed addon
+					DownloadManager.DeleteAddon(obj, false);
+				}
 				//Set the progress to 0
 				this.addonControl.DynamicNotificationBG.Width = 0;
 
@@ -47,10 +58,12 @@ namespace AddonManager
 				this.tabManager.PopulateAddon(this, 0, 0);
 
 				DownloadManager.Queue(this, UpdateDownloadProgress);
+
 			}
 			else
 			{
 				Debug.WriteLine("File couldn't be found on github.");
+				Settings.CauseError("File could not be found. Please contact the Author.");
 			}
 		}
 
@@ -70,9 +83,9 @@ namespace AddonManager
 			}
 
 			//Make sure it isn't the exact same version
-			if (newObj.addon.fileVersion == this.currentDisplay.addon.fileVersion)
+			if (newObj == this.currentDisplay)
 			{
-				Settings.CauseError("Cannot update to same version.");
+				Settings.CauseError("Cannot update to the same version.");
 				return;
 			}
 
@@ -96,7 +109,7 @@ namespace AddonManager
 		{
 			if (Settings.isTosRunning())
 			{
-				Settings.CauseError("Please close ToS before uninstalling addons.", "Close ToS", new ErrorButtonCallback(() => { Settings.CloseTos(); }));
+				Settings.CauseError("Please close ToS before "+(isUpdate?"updating":"removing")+" addons.", "Close ToS", new ErrorButtonCallback(() => { Settings.CloseTos(); }));
 				
 				return;
 			}
@@ -126,7 +139,7 @@ namespace AddonManager
 			{
 				this.currentDisplay.isInstalled = false;
 				this.currentDisplay.hasUpdate = false;
-				DownloadManager.DeleteAddon(this, true);
+				DownloadManager.DeleteAddon(this, false);
 			}
 		}
 
@@ -157,18 +170,20 @@ namespace AddonManager
 
 			AddonObject newest = null;
 
-			SemVersion addonSemVer = SemVersion.Parse(this.currentDisplay.addon.fileVersion.Remove(0, 1));
-
 			foreach (AddonObject obj in this.addons)
 			{
-				SemVersion otherSemVer = SemVersion.Parse(obj.addon.fileVersion.Remove(0, 1));
-				int semVerCheck = otherSemVer.CompareTo(addonSemVer);
+				if (newest == null)
+				{
+					newest = obj;
+					continue;
+				}
 
-				if (semVerCheck == 1)
+				if (obj > newest)
 				{
 					newest = obj;
 				}
 			}
+			Debug.WriteLine("Newest: " + newest.addon.fileVersion);
 			return newest;
 		}
 

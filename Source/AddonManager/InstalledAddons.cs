@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using Semver;
 
 namespace AddonManager
 {
@@ -48,7 +47,7 @@ namespace AddonManager
 						installedAddons[addon.addon.file].addons = new List<AddonObject>();
 
 					//is it the same version? Technically shouldn't happen but still does
-					if (installedAddons[addon.addon.file].addons[0].addon.fileVersion != addon.addon.fileVersion)
+					if (installedAddons[addon.addon.file].addons[0] == addon)
 					{
 						//Debug.WriteLine("Found same addons: " + addon.addon.file + " V1: " + installedAddons[addon.addon.file].addons[0].addon.fileVersion + " V2: " + addon.addon.fileVersion);
 						installedAddons[addon.addon.file].addons.Add(addon);
@@ -65,11 +64,11 @@ namespace AddonManager
 		{
 			obj.InstalledAddons = this;
 
-			if(!installedAddons.ContainsKey(obj.currentDisplay.addon.file)) //caused by updating
+			if (!installedAddons.ContainsKey(obj.currentDisplay.addon.file)) //caused by updating
+			{
 				installedAddons.Add(obj.currentDisplay.addon.file, obj);
-
-
-			Populate();
+				Populate();
+			}
 		}
 
 		public void RemoveAddon(AddonDisplayObject obj)
@@ -85,7 +84,6 @@ namespace AddonManager
 
 		public void Populate()
 		{
-			//Debug.WriteLine("Installed Addons Found: " + installedAddons.Count);
 
 			FieldInfo gridHolder = mainWindow.GetType().GetField("InstalledAddonCanvas", BindingFlags.Instance | BindingFlags.Public);
 			ScrollViewer view = (ScrollViewer)gridHolder.GetValue(mainWindow);
@@ -106,11 +104,7 @@ namespace AddonManager
 				//is it still unknown but has a name?
 				if(obj.Value.currentDisplay.addon.name != obj.Key && obj.Value.currentDisplay.isUnknown)
 				{
-					//installedAddons[obj.Key].currentDisplay.addon.description = obj.Value.addons[obj.Value.addons.Count()-1].addon.description;
-					//installedAddons[obj.Key].currentDisplay.repo = obj.Value.addons[obj.Value.addons.Count()-1].repo;
-					//installedAddons[obj.Key].currentDisplay.addon.name = obj.Value.addons[obj.Value.addons.Count()-1].addon.name;
 					installedAddons[obj.Key].currentDisplay.isUnknown = false;
-					//installedAddons[obj.Key].currentDisplay.isUnknownInstalled = false;
 					installedAddons[obj.Key].addons[0].isInstalled = true;
 				}
 
@@ -132,72 +126,39 @@ namespace AddonManager
 			{
 
 				//Is the same version&name already in here?
-				if (installedAddons[addon.addon.file].currentDisplay.addon.name == addon.addon.name && installedAddons[addon.addon.file].currentDisplay.addon.fileVersion == addon.addon.fileVersion)
+				if (installedAddons[addon.addon.file].currentDisplay.addon.name == addon.addon.name && installedAddons[addon.addon.file].currentDisplay == addon)
 				{
 					//Fixes some issue where a known addon is unknown
 					installedAddons[addon.addon.file].currentDisplay.isUnknown = false;
-					installedAddons[addon.addon.file].currentDisplay.addon.description = addon.addon.description;
-					installedAddons[addon.addon.file].currentDisplay.repo = addon.repo;
-					installedAddons[addon.addon.file].currentDisplay.addon.name = addon.addon.name;
+					CopyAddonDescriptor(addon);
 					return true;
 				}
 
 				foreach (AddonObject obj in installedAddons[addon.addon.file].addons)
 				{
-					if (obj.addon.name == addon.addon.name && obj.addon.fileVersion == addon.addon.fileVersion)
+					if (obj.addon.name == addon.addon.name && obj == addon)
 						return true;
 				}
 
 				if (installedAddons[addon.addon.file].currentDisplay.isUnknown)
 				{
 
-					//Version check:  -1 = Newer   0 = Same   1 = Older
-					int semVerCheck = SemVersion.Parse(addon.addon.fileVersion.Remove(0, 1)).CompareTo(SemVersion.Parse(installedAddons[addon.addon.file].currentDisplay.addon.fileVersion.Remove(0, 1)));
-
-					if (semVerCheck == 1)
+					if(addon == installedAddons[addon.addon.file].currentDisplay)
 					{
-						//Debug.WriteLine("New: V1: " + addon.addon.name+ " - " + addon.addon.fileVersion + " V2: " + installedAddons[addon.addon.file].currentDisplay.addon.name + " - " + installedAddons[addon.addon.file].currentDisplay.addon.fileVersion);
-						//installedAddons[addon.addon.file].OverrideCurrentDisplay(addon);
-						installedAddons[addon.addon.file].AddAddon(addon);
+						CopyAddonDescriptor(addon);
 						installedAddons[addon.addon.file].currentDisplay.isUnknown = false;
-						//installedAddons[addon.addon.file].currentDisplay.isUnknownInstalled = false;
-						installedAddons[addon.addon.file].currentDisplay.hasUpdate = true;
-						installedAddons[addon.addon.file].currentDisplay.addon.description = addon.addon.description;
-						installedAddons[addon.addon.file].currentDisplay.repo = addon.repo;
-						installedAddons[addon.addon.file].currentDisplay.addon.name = addon.addon.name;
 					}
 					else
 					{
-						//installedAddons[addon.addon.file].AddAddon(addon);
-
-						if (semVerCheck == 0)
-						{
-							//Debug.WriteLine("Same: V1: " + addon.addon.name + " - " + addon.addon.fileVersion + " V2: " + installedAddons[addon.addon.file].currentDisplay.addon.name + " - " + installedAddons[addon.addon.file].currentDisplay.addon.fileVersion);
-							installedAddons[addon.addon.file].currentDisplay.addon.name = addon.addon.name;
-							installedAddons[addon.addon.file].currentDisplay.addon.tags = addon.addon.tags;
-							installedAddons[addon.addon.file].currentDisplay.addon.description = addon.addon.description;
-							installedAddons[addon.addon.file].currentDisplay.repo = repo;
-							installedAddons[addon.addon.file].currentDisplay.isUnknown = false;
-							//installedAddons[addon.addon.file].currentDisplay.isUnknownInstalled = false;
-						}
-						else
-						{
-							//Debug.WriteLine("Old: V1: " + addon.addon.name + " - " + addon.addon.fileVersion + " V2: " + installedAddons[addon.addon.file].currentDisplay.addon.name + " - " + installedAddons[addon.addon.file].currentDisplay.addon.fileVersion);
-
-							installedAddons[addon.addon.file].AddAddon(addon);
-						}
+						installedAddons[addon.addon.file].AddAddon(addon);
 					}
 
 				}
 				else
 				{
-					//installedAddons[addon.addon.file].AddAddon(addon);
-					int semVerCheck = SemVersion.Parse(addon.addon.fileVersion.Remove(0, 1)).CompareTo(SemVersion.Parse(installedAddons[addon.addon.file].currentDisplay.addon.fileVersion.Remove(0, 1)));
 
-					if (semVerCheck == 1)
+					if (addon > installedAddons[addon.addon.file].currentDisplay)
 					{
-						//Debug.WriteLine("NNNNN: V1: " + addon.addon.name + " - " + addon.addon.fileVersion + " V2: " + installedAddons[addon.addon.file].currentDisplay.addon.name + " - " + installedAddons[addon.addon.file].currentDisplay.addon.fileVersion);
-						//installedAddons[addon.addon.file].OverrideCurrentDisplay(addon);
 						addon.isNewest = true;
 						installedAddons[addon.addon.file].AddAddon(addon);
 						installedAddons[addon.addon.file].currentDisplay.hasUpdate = true;
@@ -206,6 +167,11 @@ namespace AddonManager
 					}
 					else
 					{
+						if(addon == installedAddons[addon.addon.file].currentDisplay)
+						{
+							CopyAddonDescriptor(addon);
+							installedAddons[addon.addon.file].currentDisplay.isUnknown = false;
+						}
 						installedAddons[addon.addon.file].AddAddon(addon);
 
 					}
@@ -215,11 +181,15 @@ namespace AddonManager
 
 				if (installedAddons[addon.addon.file].currentDisplay.addon.name == installedAddons[addon.addon.file].currentDisplay.addon.file)
 				{
-					installedAddons[addon.addon.file].currentDisplay.addon.description = addon.addon.description;
-					installedAddons[addon.addon.file].currentDisplay.repo = addon.repo;
-					//installedAddons[addon.addon.file].currentDisplay.isUnknown = false;
-					//installedAddons[addon.addon.file].currentDisplay.isUnknownInstalled = false;
-					installedAddons[addon.addon.file].currentDisplay.addon.name = addon.addon.name;
+					CopyAddonDescriptor(addon);
+
+					if (addon > installedAddons[addon.addon.file].currentDisplay)
+					{
+						addon.isNewest = true;
+						installedAddons[addon.addon.file].currentDisplay.hasUpdate = true;
+						installedAddons[addon.addon.file].currentDisplay.isNewest = false;
+
+					}
 				}
 
 				//Populate();
@@ -227,6 +197,16 @@ namespace AddonManager
 				return true;
 			}
 			return false;
+		}
+
+		private void CopyAddonDescriptor(AddonObject a)
+		{
+			installedAddons[a.addon.file].currentDisplay.addon.name = a.addon.name;
+			installedAddons[a.addon.file].currentDisplay.addon.tags = a.addon.tags;
+			installedAddons[a.addon.file].currentDisplay.dependencies = a.dependencies;
+			installedAddons[a.addon.file].currentDisplay.addon.description = a.addon.description;
+			installedAddons[a.addon.file].currentDisplay.addon.releaseTag = a.addon.releaseTag;
+			installedAddons[a.addon.file].currentDisplay.repo = a.repo;
 		}
 	}
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.IO;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace AddonManager
 {
@@ -21,6 +22,18 @@ namespace AddonManager
 			{
 				return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+"/";
 			}
+		}
+
+
+		/// <summary>
+		/// Loads JSON string into a Template
+		/// </summary>
+		public static T LoadString<T>(string data)
+		{
+			//string jsonData = Encoding.UTF8.GetString(data);
+			//data = data.Replace("\r", "").Replace("\n", "").Replace(",","\",").Replace("\t","").Replace("\"\",","\",");
+			//data = HttpUtility.HtmlDecode(data);
+			return JsonConvert.DeserializeObject<T>(data);
 		}
 
 
@@ -94,13 +107,13 @@ namespace AddonManager
 				if (IsValidFileName(fileName))
 					File.Delete(ProgramFolder + fileName);
 			}
-			catch (IOException)
+			catch (IOException ex)
 			{
-
+				Debug.WriteLine("IOException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
 			}
-			catch (UnauthorizedAccessException)
+			catch (UnauthorizedAccessException ex)
 			{
-
+				Debug.WriteLine("UnauthorizedAccessException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
 			}
 		}
 
@@ -115,13 +128,13 @@ namespace AddonManager
 				if(IsValidFileName(fileName))
 					File.Delete(folder + fileName);
 			}
-			catch (IOException)
+			catch (IOException ex)
 			{
-
+				Debug.WriteLine("IOException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
 			}
-			catch (UnauthorizedAccessException)
+			catch (UnauthorizedAccessException ex)
 			{
-
+				Debug.WriteLine("UnauthorizedAccessException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
 			}
 		}
 

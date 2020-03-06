@@ -16,7 +16,7 @@ using System.Windows.Shapes;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Effects;
 using System.Windows.Documents;
-using Semver;
+//using Semver;
 using FontAwesome.WPF;
 using System.Globalization;
 
@@ -141,7 +141,7 @@ namespace AddonManager
 				}
 			}
 
-			addonDisplayList = new List<AddonDisplayObject>(searchResult);
+			addonDisplayList = new List<AddonDisplayObject>(searchResult).Distinct().ToList();
 			searchResult.Clear();
 
 
@@ -227,22 +227,15 @@ namespace AddonManager
 				mainWindow = (MainWindow)Application.Current.MainWindow;
 				using (WebClient wc = new WebClient())
 				{
-
+					wc.Encoding = Encoding.UTF8;
 					wc.Headers.Add("Accept: text/html, application/xhtml+xml, */*");
 					wc.Headers.Add("User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
-					wc.DownloadFileCompleted += Tab_DownloadComplete;
+					wc.DownloadStringCompleted += Tab_DownloadComplete;
 					wc.DownloadProgressChanged += Tab_DownloadProgressChanged;
 					Debug.WriteLine("Download " + source.Key + " server list");
 					wc.QueryString.Add("server", source.Key);
-					wc.DownloadFileAsync(
-						// Param1 = Link of file
-						new System.Uri(source.Value),
-						// Param2 = Path to save
-						JsonManager.ProgramFolder + source.Key + "managers.json"
-					);
+					wc.DownloadStringAsync(new System.Uri(source.Value));
 				}
-
-
 
 			}
 		}
@@ -315,24 +308,31 @@ namespace AddonManager
 			}
 		}
 
-		int PopulateRepo(Canvas canvas, string server)
+		int PopulateRepo(string data, Canvas canvas, string server)
 		{
 			
-			ManagersObject managers = JsonManager.LoadFile<ManagersObject>(server + "managers.json");
+			ManagersObject managers = JsonManager.LoadString<ManagersObject>(data);
+
+			mainWindow.UpdateLoadingBarMax(managers.sources.Count);
 
 			foreach (ManagersSource source in managers.sources)
 			{
-
-				if (LoadRepo(source.repo, server) == 1)
+				string repoData = null;
+				if ((repoData = LoadRepo(source.repo, server)) == null)
 					continue;
 
-				List<AddonsObject> addons = JsonManager.LoadFile<List<AddonsObject>>(server + "repo.json");
+				List<AddonsObject> addons = JsonManager.LoadString<List<AddonsObject>>(repoData);
 
+
+				mainWindow.UpdateLoadingBarMax(addons.Count);
 
 				foreach(AddonsObject addon in addons)
 				{
 					if (addon == null)
+					{
+						mainWindow.UpdateLoadingBarMax(-1);
 						continue;
+					}
 
 					numAddons++;
 
@@ -346,12 +346,15 @@ namespace AddonManager
 					if (installedAddons.CheckInstalled(addonObj, addonObj.repo))
 					{
 						newAddonDisplay.Invalid = true;
+						mainWindow.UpdateLoadingBarMax(-1);
 						continue;
 					}
 
 					addonDisplayList.Add(newAddonDisplay);
-				}
 
+					mainWindow.UpdateLoadingBarCurrent(1);
+				}
+				mainWindow.UpdateLoadingBarCurrent(1);
 			}
 
 			return 0;
@@ -406,7 +409,7 @@ namespace AddonManager
 				AddonsObject addon = addonObj.addon;
 				string addonName = addon.name;
 				string addonFileName = addon.file;
-				SemVersion addonSemVer = SemVersion.Parse(addon.fileVersion.Remove(0, 1));
+				//SemVersion addonSemVer = SemVersion.Parse(addon.fileVersion.Remove(0, 1));
 
 				if (addonDisplay.addons == null)
 				{
@@ -445,14 +448,14 @@ namespace AddonManager
 
 							//Version check:  -1 = Newer   0 = Same   1 = Older
 							
-							int semVerCheck = addonSemVer.CompareTo(SemVersion.Parse(displayObject.currentDisplay.addon.fileVersion.Remove(0, 1)));
+							//int semVerCheck = addonSemVer.CompareTo(SemVersion.Parse(displayObject.currentDisplay.addon.fileVersion.Remove(0, 1)));
 
-							if (semVerCheck == -1)
+							if (addonObj < displayObject.currentDisplay)
 							{
 								addonDisplay.OverrideCurrentDisplay(displayObject.currentDisplay);
 								addonDisplayList[addonDisplayList.FindIndex(x => x == displayObject)].Invalid = true;
 							}
-							else if (semVerCheck >= 0)
+							else
 							{
 								addonDisplay.AddAddon(displayObject.currentDisplay);
 								addonDisplayList[addonDisplayList.FindIndex(x => x == displayObject)].Invalid = true;
@@ -501,11 +504,13 @@ namespace AddonManager
 
 		public void RemoveFromList(AddonDisplayObject addon)
 		{
-			//Remove from main list
-			addonDisplayList.Remove(addon);
-			//UpdateListPositions();
-			DisplayAddons();
-
+			if (!addonDisplayList.Contains(addon))
+			{
+				//Remove from main list
+				addonDisplayList.Remove(addon);
+				//UpdateListPositions();
+				DisplayAddons();
+			}
 		}
 
 		public void AddToList(AddonDisplayObject addon)
@@ -614,103 +619,29 @@ namespace AddonManager
 
 
 
-		private int LoadRepo(string repo, string server)
+		private string LoadRepo(string repo, string server)
 		{
 			try
 			{
 				using (WebClient wc = new WebClient())
 				{
 					string useRepo = string.Format(repoSource, repo);
-
+					wc.Encoding = Encoding.UTF8;
 					wc.Headers.Add("Accept: text/html, application/xhtml+xml, */*");
 					wc.Headers.Add("User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
 					// wc.DownloadFileCompleted += Manager_DownloadComplete;
 					//  wc.DownloadProgressChanged += Manager_DownloadProgressChanged;
-					wc.DownloadFile(
-						// Param1 = Link of file
-						new System.Uri(useRepo),
-						// Param2 = Path to save
-						JsonManager.ProgramFolder + server + "repo.json"
-					);
+					return wc.DownloadString(new System.Uri(useRepo));
 				}
 			}catch(Exception e)
 			{
 				Debug.WriteLine("Error trying to download repo: " + repo);
 				Debug.WriteLine(e.Message.ToString());
-				return 1;
+				return null;
 			}
 
-			return -1;
 		}
 
-
-		private void RemoveAddon(AddonDisplayObject addon, bool removeFolder = true)
-		{
-			addon.currentDisplay.hasUpdate = false;
-			bool removeDisplay = false;
-
-			if (addon.currentDisplay.isUnknownInstalled)
-				removeDisplay = true;
-
-			DownloadManager.DeleteAddon(addon, removeFolder);
-
-			if (removeDisplay)
-			{
-				addon.addons.Remove(addon.currentDisplay);
-				addon.currentDisplay = null;
-
-				if (addon.addons.Count == 0)
-				{
-					addonDisplayList.Remove(addon);
-				}
-				else
-				{
-					if (addon.addons.Count > 1)
-					{
-						foreach (AddonObject obj in addon.addons)
-						{
-							foreach (AddonObject _obj in addon.addons)
-							{
-								int semVerCheck = SemVersion.Parse(obj.addon.fileVersion.Remove(0, 1)).CompareTo(SemVersion.Parse(_obj.addon.fileVersion.Remove(0, 1)));
-								if (semVerCheck == -1)
-								{
-									_obj.isNewest = false;
-									obj.isNewest = true;
-									addon.currentDisplay = obj;
-								}
-							}
-						}
-					}
-					else
-					{
-						addon.addons[0].isNewest = true;
-						addon.currentDisplay = addon.addons[0];
-					}
-				}
-
-				RebuildAddonList();
-				UpdateCurrentCanvasSize();
-			}
-
-			if (addon.addons.Count > 1)
-			{
-				foreach (AddonObject obj in addon.addons)
-				{
-					foreach (AddonObject _obj in addon.addons)
-					{
-						int semVerCheck = SemVersion.Parse(_obj.addon.fileVersion.Remove(0, 1)).CompareTo(SemVersion.Parse(obj.addon.fileVersion.Remove(0, 1)));
-						if (semVerCheck == -1)
-						{
-							_obj.isNewest = false;
-							obj.isNewest = true;
-							addon.currentDisplay = obj;
-
-							Debug.WriteLine("Newest version detected: " + obj.addon.name + " v" + obj.addon.fileVersion);
-						}
-					}
-				}
-			}
-		}
 
 		int numAddons = 0;
 		public void PopulateAddon(AddonDisplayObject addonDisplay, int x, int y, bool updatePos = false, Canvas _canvas = null)
@@ -1128,7 +1059,7 @@ namespace AddonManager
 			}));
 		}
 
-		async void PopulateTab(string server)
+		async void PopulateTab(string data, string server)
 		{
 
 			FieldInfo gridHolder = mainWindow.GetType().GetField("AddonCanvas", BindingFlags.Instance | BindingFlags.Public);
@@ -1145,7 +1076,7 @@ namespace AddonManager
 
 			try
 			{
-				int res = await Task.Run(() => PopulateRepo(canvas, server));
+				int res = await Task.Run(() => PopulateRepo(data, canvas, server));
 			}
 			catch(Exception)
 			{ }
@@ -1157,8 +1088,8 @@ namespace AddonManager
 
 
 			//file cleanup
-			JsonManager.RemoveFile(server + "managers.json");
-			JsonManager.RemoveFile(server + "repo.json");
+			//JsonManager.RemoveFile(server + "managers.json");
+			//JsonManager.RemoveFile(server + "repo.json");
 
 			finishedLoadingNum++;
 
@@ -1182,7 +1113,7 @@ namespace AddonManager
 
 		}
 
-		void Tab_DownloadComplete(object sender, AsyncCompletedEventArgs e)
+		void Tab_DownloadComplete(object sender, DownloadStringCompletedEventArgs e)
 		{
 			Debug.WriteLine(e.Error);
 
@@ -1190,11 +1121,13 @@ namespace AddonManager
 			{
 
 				string server = ((WebClient)(sender)).QueryString["server"];
-				PopulateTab(server);
+				PopulateTab(e.Result, server);
 			}
 			else
 			{
-			   // isRepoDownload = false;
+				// isRepoDownload = false;
+				string server = ((WebClient)(sender)).QueryString["server"];
+				Settings.CauseError("There was an issue getting addon data for " + server + "!");
 			}
 		}
 

@@ -388,13 +388,16 @@
                             <Label Style="{StaticResource AddonTextStyle}" x:Name="LoadingLabel" Content="Label" HorizontalAlignment="Center" VerticalAlignment="Top" Canvas.Left="5" Canvas.Top="-1"/>
 
                             <Label Style="{StaticResource AddonListTextStyle}" x:Name="LoadingFunLabel" Content="Label" Canvas.Left="10" Canvas.Top="29"/>
-                            <ProgressBar x:Name="LoadingDataBar" Height="15" Canvas.Left="10" Canvas.Top="63" Width="242"/>
+                            <ProgressBar x:Name="LoadingDataBar" Height="15" Canvas.Left="10" Canvas.Top="63" Width="242" Maximum="0"/>
                         </Canvas>
                         <TextBlock x:Name="configure" Style="{StaticResource AddonListTextBoxStyle}" HorizontalAlignment="Left" Margin="10,47,0,0" TextWrapping="WrapWithOverflow" Text="TextBlock" VerticalAlignment="Top" IsEnabled="False" Height="73" Width="580"/>
                         <TextBlock x:Name="newVersion" Style="{StaticResource MainWindowTextBlockStyle2}" HorizontalAlignment="Left" Margin="10,200,0,0" TextWrapping="WrapWithOverflow" Text="There is a new Version available! " VerticalAlignment="Top" Height="73" Width="580">
                         <LineBreak/>Download the latest release on
                         <Hyperlink RequestNavigate="Hyperlink_RequestNavigate" NavigateUri="https://github.com/MizukiBelhi/Addon-Manager/releases/latest">github</Hyperlink>.
                         </TextBlock>
+                        <Label Style="{StaticResource AddonListTextStyle}" Content="Language" HorizontalAlignment="Left" Margin="10,284,0,0" VerticalAlignment="Top"/>
+                        <Label Style="{StaticResource AddonListTextStyle}" Content="Group same addons with different authors together" HorizontalAlignment="Left" Margin="47,311,0,0" VerticalAlignment="Top" Visibility="Hidden"/>
+                        <CheckBox x:Name="groupCheck" Content="" HorizontalAlignment="Left" Margin="22,317,0,0" VerticalAlignment="Top" IsChecked="True" Checked="CheckBox_Checked" Visibility="Hidden"/>
                     </Grid>
                 </TabItem>
 

@@ -17,6 +17,7 @@ namespace AddonManager
 		public string Style { get; set; }
 		public bool DisplayUnknown { get; set; }
 		public bool FirstStart { get; set; }
+		public bool IsGrouped { get; set; }
 
 
 		public string TosAddonFolder { get; set; }
@@ -24,7 +25,7 @@ namespace AddonManager
 		public string TosDataFolder { get; set; }
 		public string TosLuaFolder { get; set; }
 
-		private int currentAppVersion = 102;
+		private int currentAppVersion = 103;
 
 		/// <summary>
 		/// Loads JSON Setting file from %programfolder%
@@ -39,7 +40,8 @@ namespace AddonManager
 				TosFolder = @"C:\Program Files (x86)\Steam\steamapps\common\TreeOfSavior\",
 				Style = "default",
 				DisplayUnknown = false,
-				FirstStart = true
+				FirstStart = true,
+				IsGrouped = true,
 			};
 
 			SettingsStructure _jsonSettings = JsonManager.LoadFile<SettingsStructure>("settings.json");
@@ -136,7 +138,8 @@ namespace AddonManager
 				TosFolder = this.TosFolder,
 				Style = this.Style,
 				DisplayUnknown = this.DisplayUnknown,
-				FirstStart = this.FirstStart
+				FirstStart = this.FirstStart,
+				IsGrouped = this.IsGrouped
 			};
 
 			JsonManager.CreateFile("settings.json", _settings);
@@ -154,6 +157,7 @@ namespace AddonManager
 			this.Style = set.Style;
 			this.DisplayUnknown = set.DisplayUnknown;
 			this.FirstStart = set.FirstStart;
+			this.IsGrouped = set.IsGrouped;
 
 
 			Debug.WriteLine("Version: " + this.Version);
@@ -162,6 +166,7 @@ namespace AddonManager
 			Debug.WriteLine("Style: " + this.Style);
 			Debug.WriteLine("DisplayUnknown: " + this.DisplayUnknown);
 			Debug.WriteLine("FirstStart: " + this.FirstStart);
+			Debug.WriteLine("IsGrouped: " + this.IsGrouped);
 		}
 
 
@@ -212,5 +217,6 @@ namespace AddonManager
 		public string Style;
 		public bool DisplayUnknown;
 		public bool FirstStart;
+		public bool IsGrouped;
 	}
 }

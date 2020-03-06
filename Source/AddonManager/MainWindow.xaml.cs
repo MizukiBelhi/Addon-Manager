@@ -156,6 +156,8 @@ namespace AddonManager
 			AddonSearchBar.Text = "Search...";
 			AddonSearchBar.Foreground = new SolidColorBrush(Color.FromRgb(150, 150, 150));
 
+			groupCheck.IsChecked = settings.IsGrouped;
+
 		}
 
 		private Stopwatch _timer = new Stopwatch();
@@ -379,6 +381,22 @@ namespace AddonManager
 			}
 		}
 
+		public void UpdateLoadingBarMax(int maxBar)
+		{
+			LoadingDataBar.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+			{
+				LoadingDataBar.Maximum = LoadingDataBar.Maximum+maxBar;
+			}));
+		}
+
+		public void UpdateLoadingBarCurrent(int current)
+		{
+			LoadingDataBar.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
+			{
+				LoadingDataBar.Value = LoadingDataBar.Value + current;
+			}));
+		}
+
 		public void RebuildAddonTextList()
 		{
 			if(tabManager != null)
@@ -442,6 +460,11 @@ namespace AddonManager
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
 			throw new Exception("Oh no, this is totally a crash caused by something.");
+		}
+
+		private void CheckBox_Checked(object sender, RoutedEventArgs e)
+		{
+			settings.IsGrouped = groupCheck.IsChecked.Value;
 		}
 	}
 }
