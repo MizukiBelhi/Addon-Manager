@@ -110,7 +110,6 @@ namespace AddonManager
 			if (Settings.isTosRunning())
 			{
 				Settings.CauseError("Please close ToS before "+(isUpdate?"updating":"removing")+" addons.", "Close ToS", new ErrorButtonCallback(() => { Settings.CloseTos(); }));
-				
 				return;
 			}
 

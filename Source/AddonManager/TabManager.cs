@@ -85,7 +85,7 @@ namespace AddonManager
 			try {
 				cts = new CancellationTokenSource();
 				await Task.Run(() => SearchList(term, cts.Token), cts.Token);
-			}catch(Exception e)
+			}catch(Exception)
 			{ }
 		}
 
@@ -156,15 +156,13 @@ namespace AddonManager
 			{
 				cts = new CancellationTokenSource();
 				await Task.Run(() => SortList(cts.Token), cts.Token);
-			}catch(Exception e)
+			}catch(Exception)
 			{ }
 
 		}
 
 		public void SortList(CancellationToken cancellationToken)
 		{
-		//	if (isSorting) return;
-
 
 			isSorting = true;
 
@@ -217,12 +215,8 @@ namespace AddonManager
 			if (emptyDelegate == null)
 				emptyDelegate += emptyDel;
 
-			//PopulateInstalledAddons();
-
 			foreach (KeyValuePair<string, string> source in this.addonSources)
 			{
-
-				// isRepoDownload = true;
 
 				mainWindow = (MainWindow)Application.Current.MainWindow;
 				using (WebClient wc = new WebClient())
@@ -409,7 +403,6 @@ namespace AddonManager
 				AddonsObject addon = addonObj.addon;
 				string addonName = addon.name;
 				string addonFileName = addon.file;
-				//SemVersion addonSemVer = SemVersion.Parse(addon.fileVersion.Remove(0, 1));
 
 				if (addonDisplay.addons == null)
 				{
@@ -445,10 +438,6 @@ namespace AddonManager
 						//we only need to compare against the displayed addon
 						if (_addonFileName == addonFileName)
 						{
-
-							//Version check:  -1 = Newer   0 = Same   1 = Older
-							
-							//int semVerCheck = addonSemVer.CompareTo(SemVersion.Parse(displayObject.currentDisplay.addon.fileVersion.Remove(0, 1)));
 
 							if (addonObj < displayObject.currentDisplay)
 							{
@@ -504,7 +493,7 @@ namespace AddonManager
 
 		public void RemoveFromList(AddonDisplayObject addon)
 		{
-			if (!addonDisplayList.Contains(addon))
+			if (addonDisplayList.Contains(addon))
 			{
 				//Remove from main list
 				addonDisplayList.Remove(addon);
@@ -1133,12 +1122,6 @@ namespace AddonManager
 
 		void Tab_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
 		{
-			//FieldInfo dataHolder = mainWindow.GetType().GetField(tabName + "ProgressBar", BindingFlags.Instance | BindingFlags.Public);
-
-			//ProgressBar _data = (ProgressBar)dataHolder.GetValue(mainWindow);
-
-			//_data.Value = e.ProgressPercentage;
-
 		}
 
 		private Size MeasureString(Label label)

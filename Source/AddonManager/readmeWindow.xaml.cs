@@ -11,7 +11,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Markdig;
+//using Markdig;
+using MarkdownSharp;
 
 namespace AddonManager
 {
@@ -28,16 +29,15 @@ namespace AddonManager
 
 		public void DisplayReadme(string text)
 		{
-			MarkdownPipeline pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
-			string result = Markdown.ToHtml(text, pipeline);
+			Markdown mk = new Markdown();
+			string result = mk.Transform(text);
 
-			readmeBlock.NavigateToString("<body style=\"background - color:black; color:white;\">"+result+"</body>");
+			readmeBlock.NavigateToString("<!DOCTYPE html><html><head><meta charset = \"UTF-8\"></head><body bgcolor=\"#2B2B2B\" style=\"color:white;\">" + result+ "</body></html>");
 
 		}
 
 		private void ReadmeBlock_LoadCompleted(object sender, System.Windows.Navigation.NavigationEventArgs e)
 		{
-
 		}
 	}
 }

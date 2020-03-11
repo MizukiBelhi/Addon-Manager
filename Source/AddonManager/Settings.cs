@@ -25,7 +25,7 @@ namespace AddonManager
 		public string TosDataFolder { get; set; }
 		public string TosLuaFolder { get; set; }
 
-		private int currentAppVersion = 103;
+		private int currentAppVersion = 104;
 
 		/// <summary>
 		/// Loads JSON Setting file from %programfolder%
@@ -64,6 +64,11 @@ namespace AddonManager
 
 		}
 
+
+		public int GetVersion()
+		{
+			return this.currentAppVersion;
+		}
 
 		public bool HasNewVersion()
 		{
@@ -191,6 +196,16 @@ namespace AddonManager
 			errorMessage handler = new errorMessage();
 			handler.Error(msg);
 			handler.ShowButton(button, cb);
+			handler.ShowDialog();
+		}
+
+		public static void CauseError(string msg, string title, string firstButton, string secondButton, ErrorButtonCallback cb)
+		{
+			errorMessage handler = new errorMessage();
+			handler.Error(msg);
+			handler.ShowButton(secondButton, cb);
+			handler.ChangeFirstButton(firstButton);
+			handler.ChangeTitle(title);
 			handler.ShowDialog();
 		}
 

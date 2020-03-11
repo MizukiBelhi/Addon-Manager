@@ -41,6 +41,16 @@ namespace AddonManager
 			cb = callback;
 		}
 
+		public void ChangeFirstButton(string buttonText)
+		{
+			okButton.Content = buttonText;
+		}
+
+		public void ChangeTitle(string titleText)
+		{
+			titleLabel.Content = titleText;
+		}
+
 		private void Errorbutton_Click(object sender, RoutedEventArgs e)
 		{
 			cb();

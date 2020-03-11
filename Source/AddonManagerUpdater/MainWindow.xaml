@@ -1,0 +1,15 @@
+﻿<Window x:Class="AddonManagerUpdater.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AddonManagerUpdater"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="92.211" Width="339.157" WindowStyle="None" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    <Grid Background="#FF2B2B2B">
+        <ProgressBar x:Name="progress" HorizontalAlignment="Left" Height="15" Margin="10,68,0,0" VerticalAlignment="Top" Width="319"/>
+        <Label x:Name="updateLabel" Content="Label" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Foreground="White"/>
+        <Label x:Name="infoLabel" Content="Label" HorizontalAlignment="Left" Margin="10,42,0,0" VerticalAlignment="Top" Foreground="White"/>
+
+    </Grid>
+</Window>

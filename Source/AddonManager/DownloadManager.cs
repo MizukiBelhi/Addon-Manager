@@ -20,6 +20,7 @@ namespace AddonManager
 		static string addonDownloadUrl = @"https://github.com/{0}/releases/download/{1}/{2}-{3}.{4}";
 
 		static string readmeDownloadUrl = @"https://raw.githubusercontent.com/{0}/master/README.md";
+		static string readmeDownloadUrlFirst = @"https://raw.githubusercontent.com/{0}/master/{1}/README.md";
 
 		static string addonFileName = "_{0}-{1}-{2}.{3}";
 
@@ -326,8 +327,37 @@ namespace AddonManager
 			isDownloadInProgress = true;
 		}
 
-		//https://raw.githubusercontent.com/MizukiBelhi/ExtendedUI/master/README.md
+		//https://raw.githubusercontent.com/repo/master/README.md
+		//https://raw.githubusercontent.com/repo/master/addonName/README.md
 		public static string GetReadme(AddonObject addon)
+		{
+			string url = string.Format(readmeDownloadUrlFirst, addon.repo, addon.addon.name.ToLower());
+			Debug.WriteLine("Trying to get README from: " + url.ToString());
+			try
+			{
+				using (WebClient testClient = new WebClient())
+				{
+					ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+					testClient.Encoding = Encoding.UTF8;
+					string readme = testClient.DownloadString(url);
+
+					if(readme[0] == '4' && readme[1] == '0' && readme[2] == '4')
+					{
+						return SecondReadme(addon);
+					}
+					else
+					{
+						return readme;
+					}
+				}
+			}
+			catch (Exception)
+			{
+				return SecondReadme(addon);
+			}
+		}
+
+		private static string SecondReadme(AddonObject addon)
 		{
 			string url = string.Format(readmeDownloadUrl, addon.repo);
 			Debug.WriteLine("Trying to get README from: " + url.ToString());
@@ -337,10 +367,11 @@ namespace AddonManager
 				using (WebClient testClient = new WebClient())
 				{
 					ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+					testClient.Encoding = Encoding.UTF8;
 					return testClient.DownloadString(url);
 				}
 			}
-			catch (Exception ex)
+			catch (Exception)
 			{
 				return "ERROR";
 			}

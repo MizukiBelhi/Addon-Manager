@@ -118,6 +118,7 @@ namespace AddonManager
 			if (addTabsOnce)
 				return;
 
+
 			string itosSource = "https://raw.githubusercontent.com/JTosAddon/Addons/itos/managers.json";
 			string jtosSource = "https://raw.githubusercontent.com/JTosAddon/Addons/master/managers.json";
 
@@ -144,9 +145,8 @@ namespace AddonManager
 			AddonTab.Header = AddonManager.Language.Translate("TAB.BROWSE");
 			InstalledAddonTab.Header = AddonManager.Language.Translate("TAB.INSTALLED");
 
-			if (!settings.HasNewVersion())
-				newVersion.Visibility = Visibility.Hidden;
-
+			
+			newVersion.Visibility = Visibility.Hidden;
 
 			ToSClientText.Text = settings.TosFolder;
 			ToSFolderCheck();
@@ -378,6 +378,15 @@ namespace AddonManager
 
 
 				tabManager.DisplayAddons();
+
+
+				if (settings.HasNewVersion())
+				{
+					Dispatcher.BeginInvoke((Action)(() => 
+						Settings.CauseError("A new version is available", "Update Available", "Update Later", "Update Now", new ErrorButtonCallback(() => { Process.Start("AddonManagerUpdater.exe", "-version \"" + settings.GetVersion().ToString() + "\""); Environment.Exit(0); }))
+					));
+				}
+
 			}
 		}
 
