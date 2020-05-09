@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
-using System.ComponentModel;
 using System.Net;
+using System.Net.Cache;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace AddonManager
 {
@@ -18,6 +16,7 @@ namespace AddonManager
 		public bool DisplayUnknown { get; set; }
 		public bool FirstStart { get; set; }
 		public bool IsGrouped { get; set; }
+		public bool LoadDates { get; set; }
 
 
 		public string TosAddonFolder { get; set; }
@@ -25,7 +24,7 @@ namespace AddonManager
 		public string TosDataFolder { get; set; }
 		public string TosLuaFolder { get; set; }
 
-		private int currentAppVersion = 104;
+		private const int currentAppVersion = 105;
 
 		/// <summary>
 		/// Loads JSON Setting file from %programfolder%
@@ -42,16 +41,18 @@ namespace AddonManager
 				DisplayUnknown = false,
 				FirstStart = true,
 				IsGrouped = true,
+				LoadDates = false
 			};
 
 			SettingsStructure _jsonSettings = JsonManager.LoadFile<SettingsStructure>("settings.json");
 
-			if(_jsonSettings == null)
+			if (_jsonSettings == null)
 			{
 				//Any exception we create a new settings file
-				if(JsonManager.CreateFile("settings.json", _settings) == false)
+				if (JsonManager.CreateFile("settings.json", _settings) == false)
 				{
-					//error
+					CauseError("There was an issue creating the settings file.");
+					return;
 				}
 			}
 			else
@@ -60,57 +61,53 @@ namespace AddonManager
 			}
 
 
-			this.InitSettings(_settings);
-
+			InitSettings(_settings);
 		}
 
 
 		public int GetVersion()
 		{
-			return this.currentAppVersion;
+			return currentAppVersion;
 		}
 
 		public bool HasNewVersion()
 		{
 			//https://raw.githubusercontent.com/MizukiBelhi/Addon-Manager/master/version
-			string ver = currentAppVersion.ToString();
 
 			try
 			{
-
+				string ver;// = currentAppVersion.ToString();
 				using (WebClient wc = new WebClient())
 				{
+					wc.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
 					wc.Headers.Add("Accept: text/html, application/xhtml+xml, */*");
-					wc.Headers.Add("User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
-					ver = wc.DownloadString("https://raw.githubusercontent.com/MizukiBelhi/Addon-Manager/master/version");
+					wc.Headers.Add(
+						"User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
+					ver = wc.DownloadString(
+						"https://raw.githubusercontent.com/MizukiBelhi/Addon-Manager/master/version");
 				}
 
-				Debug.WriteLine(ver);
+				Debug.WriteLine("Git Version: " + ver);
 
-				if (Int32.Parse(ver) > currentAppVersion)
+				if (int.Parse(ver) > currentAppVersion)
 					return true;
-
-			}catch(Exception)
-			{ }
+			}
+			catch (Exception)
+			{
+			}
 
 			return false;
 		}
 
 
 		/// <summary>
-		/// Generates ToS folder structure for easy accessability
+		/// Generates ToS folder structure for easy accessibility
 		/// </summary>
 		public void GenerateTosFolders()
 		{
-			if (JsonManager.DirectoryExists(TosFolder + @"\release"))
-			{
-				TosReleaseFolder = TosFolder + @"\release\";
-			}
+			if (JsonManager.DirectoryExists(TosFolder + @"\release")) TosReleaseFolder = TosFolder + @"\release\";
 
-			if (JsonManager.DirectoryExists(TosFolder + @"\data"))
-			{
-				TosDataFolder = TosFolder + @"\data\";
-			}
+			if (JsonManager.DirectoryExists(TosFolder + @"\data")) TosDataFolder = TosFolder + @"\data\";
 
 			if (JsonManager.DirectoryExists(TosFolder + @"\addons"))
 			{
@@ -118,16 +115,11 @@ namespace AddonManager
 			}
 			else
 			{
-			JsonManager.CreateFolder(TosFolder + @"\addons");
+				JsonManager.CreateFolder(TosFolder + @"\addons");
 				TosAddonFolder = TosFolder + @"\addons\";
 			}
 
-			if (JsonManager.DirectoryExists(TosDataFolder))
-			{
-				TosLuaFolder = TosReleaseFolder + @"\lua\";
-			}
-
-
+			if (JsonManager.DirectoryExists(TosDataFolder)) TosLuaFolder = TosReleaseFolder + @"\lua\";
 		}
 
 
@@ -139,49 +131,60 @@ namespace AddonManager
 			SettingsStructure _settings = new SettingsStructure
 			{
 				Version = currentAppVersion,
-				Language = this.Language,
-				TosFolder = this.TosFolder,
-				Style = this.Style,
-				DisplayUnknown = this.DisplayUnknown,
-				FirstStart = this.FirstStart,
-				IsGrouped = this.IsGrouped
+				Language = Language,
+				TosFolder = TosFolder,
+				Style = Style,
+				DisplayUnknown = DisplayUnknown,
+				FirstStart = FirstStart,
+				IsGrouped = IsGrouped,
+				LoadDates = LoadDates
 			};
 
-			JsonManager.CreateFile("settings.json", _settings);
+			if (JsonManager.CreateFile("settings.json", _settings) == false)
+				CauseError("There was an issue saving settings.");
 		}
 
 
 		/// <summary>
 		/// Loads Settings for use
 		/// </summary>
-		void InitSettings(SettingsStructure set)
+		private void InitSettings(SettingsStructure set)
 		{
-			this.Version = currentAppVersion;
-			this.Language = set.Language;
-			this.TosFolder = set.TosFolder;
-			this.Style = set.Style;
-			this.DisplayUnknown = set.DisplayUnknown;
-			this.FirstStart = set.FirstStart;
-			this.IsGrouped = set.IsGrouped;
+			if (set.Version < currentAppVersion)
+			{
+				Debug.WriteLine("Setting Version: "+ set.Version);
+				//New Version detected.
+				ShowChangelog();
+			}
+
+			Version = currentAppVersion;
+			Language = set.Language;
+			TosFolder = set.TosFolder;
+			Style = set.Style;
+			DisplayUnknown = set.DisplayUnknown;
+			FirstStart = set.FirstStart;
+			IsGrouped = set.IsGrouped;
+			LoadDates = set.LoadDates;
 
 
-			Debug.WriteLine("Version: " + this.Version);
-			Debug.WriteLine("Language: " + this.Language);
-			Debug.WriteLine("Folder: " + this.TosFolder);
-			Debug.WriteLine("Style: " + this.Style);
-			Debug.WriteLine("DisplayUnknown: " + this.DisplayUnknown);
-			Debug.WriteLine("FirstStart: " + this.FirstStart);
-			Debug.WriteLine("IsGrouped: " + this.IsGrouped);
+			Debug.WriteLine("Version: " + Version);
+			Debug.WriteLine("Language: " + Language);
+			Debug.WriteLine("Folder: " + TosFolder);
+			Debug.WriteLine("Style: " + Style);
+			Debug.WriteLine("DisplayUnknown: " + DisplayUnknown);
+			Debug.WriteLine("FirstStart: " + FirstStart);
+			Debug.WriteLine("IsGrouped: " + IsGrouped);
+			Debug.WriteLine("LoadDates: " + LoadDates);
+
+			//Also immediately save them so we don't get the changelog twice
+			Save();
 		}
 
 
 		public static bool isTosRunning()
 		{
-			Process[] pname = Process.GetProcessesByName("Client_tos");
-			if (pname.Length == 0)
-				return false;
-			else
-				return true;
+			var pname = Process.GetProcessesByName("Client_tos");
+			return pname.Length != 0;
 		}
 
 		public static void CauseError(string msg)
@@ -199,7 +202,8 @@ namespace AddonManager
 			handler.ShowDialog();
 		}
 
-		public static void CauseError(string msg, string title, string firstButton, string secondButton, ErrorButtonCallback cb)
+		public static void CauseError(string msg, string title, string firstButton, string secondButton,
+			ErrorButtonCallback cb)
 		{
 			errorMessage handler = new errorMessage();
 			handler.Error(msg);
@@ -209,22 +213,41 @@ namespace AddonManager
 			handler.ShowDialog();
 		}
 
+		//Quick way to show the changelog on a different thread
+		// https://stackoverflow.com/a/1111485
+		//
+		//This way program start does not get moved to after the user closes it.
+		public void ShowChangelog()
+		{
+			Thread newWindowThread = new Thread(_ShowChangelog);
+			newWindowThread.SetApartmentState(ApartmentState.STA);
+			newWindowThread.IsBackground = true;
+			newWindowThread.Start();
+		}
+
+		private void _ShowChangelog()
+		{
+			Changelog chl = new Changelog();
+			chl.DisplayChangelog();
+			chl.Show();
+			Dispatcher.Run();
+		}
+
 		public static void CloseTos()
 		{
 			try
 			{
-				Process[] proc = Process.GetProcessesByName("Client_tos");
+				var proc = Process.GetProcessesByName("Client_tos");
 				proc[0].Kill();
-			}catch
-			{ }
+			}
+			catch
+			{
+			}
 		}
-
-
-
 	}
 
 	[Serializable]
-	class SettingsStructure
+	internal class SettingsStructure
 	{
 		public int Version;
 		public string TosFolder;
@@ -233,5 +256,6 @@ namespace AddonManager
 		public bool DisplayUnknown;
 		public bool FirstStart;
 		public bool IsGrouped;
+		public bool LoadDates;
 	}
 }

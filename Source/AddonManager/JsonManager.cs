@@ -1,28 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection;
-using System.IO;
-using Newtonsoft.Json;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace AddonManager
 {
-	static class JsonManager
+	internal static class JsonManager
 	{
-
 		/// <summary>
 		/// exe folder location
 		/// </summary>
-		public static string ProgramFolder
-		{
-			get
-			{
-				return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)+"/";
-			}
-		}
+		public static string ProgramFolder => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
 
 
 		/// <summary>
@@ -38,18 +28,42 @@ namespace AddonManager
 
 
 		/// <summary>
-		/// Loads JSON file into a Template
+		/// Loads JSON file from ProgramFolder into a Template
 		/// </summary>
 		public static T LoadFile<T>(string fileName)
 		{
-			string file = "";
+			string file;
 			try
 			{
 				file = File.ReadAllText(ProgramFolder + fileName);
-			}catch (IOException)
+			}
+			catch (IOException)
 			{
 				return default(T);
-			}catch(UnauthorizedAccessException)
+			}
+			catch (UnauthorizedAccessException)
+			{
+				return default(T);
+			}
+
+			return JsonConvert.DeserializeObject<T>(file);
+		}
+
+		/// <summary>
+		/// Loads JSON file into a Template
+		/// </summary>
+		public static T LoadFileDirect<T>(string fileName)
+		{
+			string file;
+			try
+			{
+				file = File.ReadAllText(fileName);
+			}
+			catch (IOException)
+			{
+				return default(T);
+			}
+			catch (UnauthorizedAccessException)
 			{
 				return default(T);
 			}
@@ -62,7 +76,7 @@ namespace AddonManager
 		/// </summary>
 		public static object LoadFile(string fileName)
 		{
-			string file = "";
+			string file;
 			try
 			{
 				file = File.ReadAllText(ProgramFolder + fileName);
@@ -109,11 +123,11 @@ namespace AddonManager
 			}
 			catch (IOException ex)
 			{
-				Debug.WriteLine("IOException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
+				Debug.WriteLine("IOException trying to delete file: " + fileName + " - " + ex.Message);
 			}
 			catch (UnauthorizedAccessException ex)
 			{
-				Debug.WriteLine("UnauthorizedAccessException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
+				Debug.WriteLine("UnauthorizedAccessException trying to delete file: " + fileName + " - " + ex.Message);
 			}
 		}
 
@@ -125,16 +139,18 @@ namespace AddonManager
 		{
 			try
 			{
-				if(IsValidFileName(fileName))
+				if (IsValidFileName(fileName))
 					File.Delete(folder + fileName);
 			}
 			catch (IOException ex)
 			{
-				Debug.WriteLine("IOException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
+				Debug.WriteLine("IOException trying to delete file: " + fileName + " - " +
+				                ex.Message);
 			}
 			catch (UnauthorizedAccessException ex)
 			{
-				Debug.WriteLine("UnauthorizedAccessException trying to delete file: " + fileName.ToString() + " - " + ex.Message.ToString());
+				Debug.WriteLine("UnauthorizedAccessException trying to delete file: " + fileName + " - " +
+				                ex.Message);
 			}
 		}
 
@@ -190,6 +206,7 @@ namespace AddonManager
 			{
 				return false;
 			}
+
 			return true;
 		}
 
@@ -202,7 +219,7 @@ namespace AddonManager
 			{
 				Directory.Delete(folderName, true);
 			}
-			catch(DirectoryNotFoundException)
+			catch (DirectoryNotFoundException)
 			{
 				return true;
 			}
@@ -214,6 +231,7 @@ namespace AddonManager
 			{
 				return false;
 			}
+
 			return true;
 		}
 
@@ -231,7 +249,5 @@ namespace AddonManager
 		{
 			return !string.IsNullOrEmpty(fileName) && fileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
 		}
-
-
 	}
 }

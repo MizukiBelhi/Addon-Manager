@@ -1,52 +1,52 @@
-﻿using	System;
-#if	!NETSTANDARD
-using	System.Globalization;
-using	System.Runtime.Serialization;
-using	System.Security.Permissions;
+﻿using System;
+#if !NETSTANDARD
+using System.Globalization;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
 #endif
-using	System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
-namespace	Semver
+namespace Semver
 {
 	///	<summary>
 	///	A	semantic	version	implementation.
 	///	Conforms	to	v2.0.0	of	http://semver.org/
 	///	</summary>
-#if	NETSTANDARD
+#if NETSTANDARD
 	public	sealed	class	SemVersion	:	IComparable<SemVersion>,	IComparable
 #else
 	[Serializable]
-	public	sealed	class	SemVersion	:	IComparable<SemVersion>,	IComparable,	ISerializable
+	public sealed class SemVersion : IComparable<SemVersion>, IComparable, ISerializable
 #endif
 	{
-		static	Regex	parseEx	=
-			new	Regex(@"^(?<major>\d+)"	+
-				@"(\.(?<minor>\d+))?"	+
-				@"(\.(?<patch>\d+))?"	+
-				@"(\-(?<pre>[0-9A-Za-z\-\.]+))?"	+
-				@"(\+(?<build>[0-9A-Za-z\-\.]+))?$",
-#if	NETSTANDARD
+		private static Regex parseEx =
+			new Regex(@"^(?<major>\d+)" +
+			          @"(\.(?<minor>\d+))?" +
+			          @"(\.(?<patch>\d+))?" +
+			          @"(\-(?<pre>[0-9A-Za-z\-\.]+))?" +
+			          @"(\+(?<build>[0-9A-Za-z\-\.]+))?$",
+#if NETSTANDARD
 				RegexOptions.CultureInvariant	|	RegexOptions.ExplicitCapture);
 #else
-				RegexOptions.CultureInvariant	|	RegexOptions.Compiled	|	RegexOptions.ExplicitCapture);
+				RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
 #endif
 
-#if	!NETSTANDARD
+#if !NETSTANDARD
 		///	<summary>
 		///	Initializes	a	new	instance	of	the	<see	cref="SemVersion"	/>	class.
 		///	</summary>
 		///	<param	name="info"></param>
 		///	<param	name="context"></param>
 		///	<exception	cref="ArgumentNullException"></exception>
-		private	SemVersion(SerializationInfo	info,	StreamingContext	context)
+		private SemVersion(SerializationInfo info, StreamingContext context)
 		{
-			if	(info	==	null)	throw	new	ArgumentNullException("info");
-			var	semVersion	=	Parse(info.GetString("SemVersion"));
-			Major	=	semVersion.Major;
-			Minor	=	semVersion.Minor;
-			Patch	=	semVersion.Patch;
-			Prerelease	=	semVersion.Prerelease;
-			Build	=	semVersion.Build;
+			if (info == null) throw new ArgumentNullException("info");
+			SemVersion semVersion = Parse(info.GetString("SemVersion"));
+			Major = semVersion.Major;
+			Minor = semVersion.Minor;
+			Patch = semVersion.Patch;
+			Prerelease = semVersion.Prerelease;
+			Build = semVersion.Build;
 		}
 #endif
 
@@ -58,14 +58,14 @@ namespace	Semver
 		///	<param	name="patch">The	patch	version.</param>
 		///	<param	name="prerelease">The	prerelease	version	(eg.	"alpha").</param>
 		///	<param	name="build">The	build	eg	("nightly.232").</param>
-		public	SemVersion(int	major,	int	minor	=	0,	int	patch	=	0,	string	prerelease	=	"",	string	build	=	"")
+		public SemVersion(int major, int minor = 0, int patch = 0, string prerelease = "", string build = "")
 		{
-			this.Major	=	major;
-			this.Minor	=	minor;
-			this.Patch	=	patch;
+			Major = major;
+			Minor = minor;
+			Patch = patch;
 
-			this.Prerelease	=	prerelease	??	"";
-			this.Build	=	build	??	"";
+			Prerelease = prerelease ?? "";
+			Build = build ?? "";
 		}
 
 		///	<summary>
@@ -73,29 +73,19 @@ namespace	Semver
 		///	</summary>
 		///	<param	name="version">The	<see	cref="System.Version"/>	that	is	used	to	initialize	
 		///	the	Major,	Minor,	Patch	and	Build	properties.</param>
-		public	SemVersion(Version	version)
+		public SemVersion(Version version)
 		{
-			if	(version	==	null)
-				throw	new	ArgumentNullException("version");
+			if (version == null)
+				throw new ArgumentNullException("version");
 
-			this.Major	=	version.Major;
-			this.Minor	=	version.Minor;
+			Major = version.Major;
+			Minor = version.Minor;
 
-			if	(version.Revision	>=	0)
-			{
-				this.Patch	=	version.Revision;
-			}
+			if (version.Revision >= 0) Patch = version.Revision;
 
-			this.Prerelease	=	String.Empty;
+			Prerelease = string.Empty;
 
-			if	(version.Build	>	0)
-			{
-				this.Build	=	version.Build.ToString();
-			}
-			else
-			{
-				this.Build	=	String.Empty;
-			}
+			Build = version.Build > 0 ? version.Build.ToString() : string.Empty;
 		}
 
 		///	<summary>
@@ -105,52 +95,52 @@ namespace	Semver
 		///	<param	name="strict">If	set	to	<c>true</c>	minor	and	patch	version	are	required,	else	they	default	to	0.</param>
 		///	<returns>The	SemVersion	object.</returns>
 		///	<exception	cref="System.InvalidOperationException">When	a	invalid	version	string	is	passed.</exception>
-		public	static	SemVersion	Parse(string	version,	bool	strict	=	false)
+		public static SemVersion Parse(string version, bool strict = false)
 		{
-			var	match	=	parseEx.Match(version);
-			if	(!match.Success)
-				return	new	SemVersion(0,	0,	0,	"0",	"0");
+			Match match = parseEx.Match(version);
+			if (!match.Success)
+				return new SemVersion(0, 0, 0, "0", "0");
 
-#if	NETSTANDARD
-			var	major	=	int.Parse(match.Groups["major"].Value);
+#if NETSTANDARD
+			var	major = int.Parse(match.Groups["major"].Value);
 #else
-			var	major	=	int.Parse(match.Groups["major"].Value,	CultureInfo.InvariantCulture);
+			int major = int.Parse(match.Groups["major"].Value, CultureInfo.InvariantCulture);
 #endif
 
-			var	minorMatch	=	match.Groups["minor"];
-			int	minor	=	0;
-			if	(minorMatch.Success)
+			Group minorMatch = match.Groups["minor"];
+			int minor = 0;
+			if (minorMatch.Success)
 			{
-#if	NETSTANDARD
-				minor	=	int.Parse(minorMatch.Value);
+#if NETSTANDARD
+				minor = int.Parse(minorMatch.Value);
 #else
-				minor	=	int.Parse(minorMatch.Value,	CultureInfo.InvariantCulture);
+				minor = int.Parse(minorMatch.Value, CultureInfo.InvariantCulture);
 #endif
 			}
-			else	if	(strict)
+			else if (strict)
 			{
-				throw	new	InvalidOperationException("Invalid	version	(no	minor	version	given	in	strict	mode)");
+				throw new InvalidOperationException("Invalid	version	(no	minor	version	given	in	strict	mode)");
 			}
 
-			var	patchMatch	=	match.Groups["patch"];
-			int	patch	=	0;
-			if	(patchMatch.Success)
+			Group patchMatch = match.Groups["patch"];
+			int patch = 0;
+			if (patchMatch.Success)
 			{
-#if	NETSTANDARD
-				patch	=	int.Parse(patchMatch.Value);
+#if NETSTANDARD
+				patch = int.Parse(patchMatch.Value);
 #else
-				patch	=	int.Parse(patchMatch.Value,	CultureInfo.InvariantCulture);
+				patch = int.Parse(patchMatch.Value, CultureInfo.InvariantCulture);
 #endif
 			}
-			else	if	(strict)
+			else if (strict)
 			{
-				throw	new	InvalidOperationException("Invalid	version	(no	patch	version	given	in	strict	mode)");
+				throw new InvalidOperationException("Invalid	version	(no	patch	version	given	in	strict	mode)");
 			}
 
-			var	prerelease	=	match.Groups["pre"].Value;
-			var	build	=	match.Groups["build"].Value;
+			string prerelease = match.Groups["pre"].Value;
+			string build = match.Groups["build"].Value;
 
-			return	new	SemVersion(major,	minor,	patch,	prerelease,	build);
+			return new SemVersion(major, minor, patch, prerelease, build);
 		}
 
 		///	<summary>
@@ -162,17 +152,17 @@ namespace	Semver
 		///	version	string	was	not	valid.</param>
 		///	<param	name="strict">If	set	to	<c>true</c>	minor	and	patch	version	are	required,	else	they	default	to	0.</param>
 		///	<returns><c>False</c>	when	a	invalid	version	string	is	passed,	otherwise	<c>true</c>.</returns>
-		public	static	bool	TryParse(string	version,	out	SemVersion	semver,	bool	strict	=	false)
+		public static bool TryParse(string version, out SemVersion semver, bool strict = false)
 		{
 			try
 			{
-				semver	=	Parse(version,	strict);
-				return	true;
+				semver = Parse(version, strict);
+				return true;
 			}
-			catch	(Exception)
+			catch (Exception)
 			{
-				semver	=	null;
-				return	false;
+				semver = null;
+				return false;
 			}
 		}
 
@@ -182,11 +172,11 @@ namespace	Semver
 		///	<param	name="versionA">The	first	version.</param>
 		///	<param	name="versionB">The	second	version.</param>
 		///	<returns>If	versionA	is	equal	to	versionB	<c>true</c>,	else	<c>false</c>.</returns>
-		public	static	bool	Equals(SemVersion	versionA,	SemVersion	versionB)
+		public static bool Equals(SemVersion versionA, SemVersion versionB)
 		{
-			if	(ReferenceEquals(versionA,	null))
-				return	ReferenceEquals(versionB,	null);
-			return	versionA.Equals(versionB);
+			if (ReferenceEquals(versionA, null))
+				return ReferenceEquals(versionB, null);
+			return versionA.Equals(versionB);
 		}
 
 		///	<summary>
@@ -196,11 +186,11 @@ namespace	Semver
 		///	<param	name="versionB">The	version	to	compare	against.</param>
 		///	<returns>If	versionA	&lt;	versionB	<c>&lt;	0</c>,	if	versionA	&gt;	versionB	<c>&gt;	0</c>,
 		///	if	versionA	is	equal	to	versionB	<c>0</c>.</returns>
-		public	static	int	Compare(SemVersion	versionA,	SemVersion	versionB)
+		public static int Compare(SemVersion versionA, SemVersion versionB)
 		{
-			if	(ReferenceEquals(versionA,	null))
-				return	ReferenceEquals(versionB,	null)	?	0	:	-1;
-			return	versionA.CompareTo(versionB);
+			if (ReferenceEquals(versionA, null))
+				return ReferenceEquals(versionB, null) ? 0 : -1;
+			return versionA.CompareTo(versionB);
 		}
 
 		///	<summary>
@@ -212,15 +202,15 @@ namespace	Semver
 		///	<param	name="prerelease">The	prerelease	text.</param>
 		///	<param	name="build">The	build	text.</param>
 		///	<returns>The	new	version	object.</returns>
-		public	SemVersion	Change(int?	major	=	null,	int?	minor	=	null,	int?	patch	=	null,
-			string	prerelease	=	null,	string	build	=	null)
+		public SemVersion Change(int? major = null, int? minor = null, int? patch = null,
+			string prerelease = null, string build = null)
 		{
-			return	new	SemVersion(
-				major	??	this.Major,
-				minor	??	this.Minor,
-				patch	??	this.Patch,
-				prerelease	??	this.Prerelease,
-				build	??	this.Build);
+			return new SemVersion(
+				major ?? Major,
+				minor ?? Minor,
+				patch ?? Patch,
+				prerelease ?? Prerelease,
+				build ?? Build);
 		}
 
 		///	<summary>
@@ -229,7 +219,7 @@ namespace	Semver
 		///	<value>
 		///	The	major	version.
 		///	</value>
-		public	int	Major	{	get;	private	set;	}
+		public int Major { get; private set; }
 
 		///	<summary>
 		///	Gets	the	minor	version.
@@ -237,7 +227,7 @@ namespace	Semver
 		///	<value>
 		///	The	minor	version.
 		///	</value>
-		public	int	Minor	{	get;	private	set;	}
+		public int Minor { get; private set; }
 
 		///	<summary>
 		///	Gets	the	patch	version.
@@ -245,7 +235,7 @@ namespace	Semver
 		///	<value>
 		///	The	patch	version.
 		///	</value>
-		public	int	Patch	{	get;	private	set;	}
+		public int Patch { get; private set; }
 
 		///	<summary>
 		///	Gets	the	pre-release	version.
@@ -253,7 +243,7 @@ namespace	Semver
 		///	<value>
 		///	The	pre-release	version.
 		///	</value>
-		public	string	Prerelease	{	get;	private	set;	}
+		public string Prerelease { get; private set; }
 
 		///	<summary>
 		///	Gets	the	build	version.
@@ -261,7 +251,7 @@ namespace	Semver
 		///	<value>
 		///	The	build	version.
 		///	</value>
-		public	string	Build	{	get;	private	set;	}
+		public string Build { get; private set; }
 
 		///	<summary>
 		///	Returns	a	<see	cref="System.String"	/>	that	represents	this	instance.
@@ -269,14 +259,14 @@ namespace	Semver
 		///	<returns>
 		///	A	<see	cref="System.String"	/>	that	represents	this	instance.
 		///	</returns>
-		public	override	string	ToString()
+		public override string ToString()
 		{
-			var	version	=	""	+	Major	+	"."	+	Minor	+	"."	+	Patch;
-			if	(!String.IsNullOrEmpty(Prerelease))
-				version	+=	"-"	+	Prerelease;
-			if	(!String.IsNullOrEmpty(Build))
-				version	+=	"+"	+	Build;
-			return	version;
+			string version = "" + Major + "." + Minor + "." + Patch;
+			if (!string.IsNullOrEmpty(Prerelease))
+				version += "-" + Prerelease;
+			if (!string.IsNullOrEmpty(Build))
+				version += "+" + Build;
+			return version;
 		}
 
 		///	<summary>
@@ -292,9 +282,9 @@ namespace	Semver
 		///		Zero	This	instance	occurs	in	the	same	position	in	the	sort	order	as	<paramref	name="obj"	/>.	i
 		///		Greater	than	zero	This	instance	follows	<paramref	name="obj"	/>	in	the	sort	order.
 		///	</returns>
-		public	int	CompareTo(object	obj)
+		public int CompareTo(object obj)
 		{
-			return	CompareTo((SemVersion)obj);
+			return CompareTo((SemVersion) obj);
 		}
 
 		///	<summary>
@@ -310,17 +300,17 @@ namespace	Semver
 		///		Zero	This	instance	occurs	in	the	same	position	in	the	sort	order	as	<paramref	name="other"	/>.	i
 		///		Greater	than	zero	This	instance	follows	<paramref	name="other"	/>	in	the	sort	order.
 		///	</returns>
-		public	int	CompareTo(SemVersion	other)
+		public int CompareTo(SemVersion other)
 		{
-			if	(ReferenceEquals(other,	null))
-				return	1;
+			if (ReferenceEquals(other, null))
+				return 1;
 
-			var	r	=	this.CompareByPrecedence(other);
-			if	(r	!=	0)
-				return	r;
+			int r = CompareByPrecedence(other);
+			if (r != 0)
+				return r;
 
-			r	=	CompareComponent(this.Build,	other.Build);
-			return	r;
+			r = CompareComponent(Build, other.Build);
+			return r;
 		}
 
 		///	<summary>
@@ -328,9 +318,9 @@ namespace	Semver
 		///	</summary>
 		///	<param	name="other">The	semantic	version.</param>
 		///	<returns><c>true</c>	if	the	version	precedence	matches.</returns>
-		public	bool	PrecedenceMatches(SemVersion	other)
+		public bool PrecedenceMatches(SemVersion other)
 		{
-			return	CompareByPrecedence(other)	==	0;
+			return CompareByPrecedence(other) == 0;
 		}
 
 		///	<summary>
@@ -344,65 +334,65 @@ namespace	Semver
 		///		Zero	This	instance	has	the	same	precedence	as	<paramref	name="other"	/>.	i
 		///		Greater	than	zero	This	instance	has	creater	precedence	as	<paramref	name="other"	/>.
 		///	</returns>
-		public	int	CompareByPrecedence(SemVersion	other)
+		public int CompareByPrecedence(SemVersion other)
 		{
-			if	(ReferenceEquals(other,	null))
-				return	1;
+			if (ReferenceEquals(other, null))
+				return 1;
 
-			var	r	=	this.Major.CompareTo(other.Major);
-			if	(r	!=	0)	return	r;
+			int r = Major.CompareTo(other.Major);
+			if (r != 0) return r;
 
-			r	=	this.Minor.CompareTo(other.Minor);
-			if	(r	!=	0)	return	r;
+			r = Minor.CompareTo(other.Minor);
+			if (r != 0) return r;
 
-			r	=	this.Patch.CompareTo(other.Patch);
-			if	(r	!=	0)	return	r;
+			r = Patch.CompareTo(other.Patch);
+			if (r != 0) return r;
 
-			r	=	CompareComponent(this.Prerelease,	other.Prerelease,	true);
-			return	r;
+			r = CompareComponent(Prerelease, other.Prerelease, true);
+			return r;
 		}
 
-		static	int	CompareComponent(string	a,	string	b,	bool	lower	=	false)
+		private static int CompareComponent(string a, string b, bool lower = false)
 		{
-			var	aEmpty	=	String.IsNullOrEmpty(a);
-			var	bEmpty	=	String.IsNullOrEmpty(b);
-			if	(aEmpty	&&	bEmpty)
-				return	0;
+			bool aEmpty = string.IsNullOrEmpty(a);
+			bool bEmpty = string.IsNullOrEmpty(b);
+			if (aEmpty && bEmpty)
+				return 0;
 
-			if	(aEmpty)
-				return	lower	?	1	:	-1;
-			if	(bEmpty)
-				return	lower	?	-1	:	1;
+			if (aEmpty)
+				return lower ? 1 : -1;
+			if (bEmpty)
+				return lower ? -1 : 1;
 
-			var	aComps	=	a.Split('.');
-			var	bComps	=	b.Split('.');
+			var aComps = a.Split('.');
+			var bComps = b.Split('.');
 
-			var	minLen	=	Math.Min(aComps.Length,	bComps.Length);
-			for	(int	i	=	0;	i	<	minLen;	i++)
+			int minLen = Math.Min(aComps.Length, bComps.Length);
+			for (int i = 0; i < minLen; i++)
 			{
-				var	ac	=	aComps[i];
-				var	bc	=	bComps[i];
-				var	isanum	=	Int32.TryParse(ac,	out	int	anum);
-				var	isbnum	=	Int32.TryParse(bc,	out	int	bnum);
-				int	r;
-				if	(isanum	&&	isbnum)
+				string ac = aComps[i];
+				string bc = bComps[i];
+				bool isanum = int.TryParse(ac, out int anum);
+				bool isbnum = int.TryParse(bc, out int bnum);
+				int r;
+				if (isanum && isbnum)
 				{
-					r	=	anum.CompareTo(bnum);
-					if	(r	!=	0)	return	anum.CompareTo(bnum);
+					r = anum.CompareTo(bnum);
+					if (r != 0) return anum.CompareTo(bnum);
 				}
 				else
 				{
-					if	(isanum)
-						return	-1;
-					if	(isbnum)
-						return	1;
-					r	=	String.CompareOrdinal(ac,	bc);
-					if	(r	!=	0)
-						return	r;
+					if (isanum)
+						return -1;
+					if (isbnum)
+						return 1;
+					r = string.CompareOrdinal(ac, bc);
+					if (r != 0)
+						return r;
 				}
 			}
 
-			return	aComps.Length.CompareTo(bComps.Length);
+			return aComps.Length.CompareTo(bComps.Length);
 		}
 
 		///	<summary>
@@ -412,21 +402,21 @@ namespace	Semver
 		///	<returns>
 		///			<c>true</c>	if	the	specified	<see	cref="System.Object"	/>	is	equal	to	this	instance;	otherwise,	<c>false</c>.
 		///	</returns>
-		public	override	bool	Equals(object	obj)
+		public override bool Equals(object obj)
 		{
-			if	(ReferenceEquals(obj,	null))
-				return	false;
+			if (ReferenceEquals(obj, null))
+				return false;
 
-			if	(ReferenceEquals(this,	obj))
-				return	true;
+			if (ReferenceEquals(this, obj))
+				return true;
 
-			var	other	=	(SemVersion)obj;
+			SemVersion other = (SemVersion) obj;
 
-			return	this.Major	==	other.Major	&&
-				this.Minor	==	other.Minor	&&
-				this.Patch	==	other.Patch	&&
-				string.Equals(this.Prerelease,	other.Prerelease,	StringComparison.Ordinal)	&&
-				string.Equals(this.Build,	other.Build,	StringComparison.Ordinal);
+			return Major == other.Major &&
+			       Minor == other.Minor &&
+			       Patch == other.Patch &&
+			       string.Equals(Prerelease, other.Prerelease, StringComparison.Ordinal) &&
+			       string.Equals(Build, other.Build, StringComparison.Ordinal);
 		}
 
 		///	<summary>
@@ -435,25 +425,25 @@ namespace	Semver
 		///	<returns>
 		///	A	hash	code	for	this	instance,	suitable	for	use	in	hashing	algorithms	and	data	structures	like	a	hash	table.	
 		///	</returns>
-		public	override	int	GetHashCode()
+		public override int GetHashCode()
 		{
 			unchecked
 			{
-				int	result	=	this.Major.GetHashCode();
-				result	=	result	*	31	+	this.Minor.GetHashCode();
-				result	=	result	*	31	+	this.Patch.GetHashCode();
-				result	=	result	*	31	+	this.Prerelease.GetHashCode();
-				result	=	result	*	31	+	this.Build.GetHashCode();
-				return	result;
+				int result = Major.GetHashCode();
+				result = result * 31 + Minor.GetHashCode();
+				result = result * 31 + Patch.GetHashCode();
+				result = result * 31 + Prerelease.GetHashCode();
+				result = result * 31 + Build.GetHashCode();
+				return result;
 			}
 		}
 
-#if	!NETSTANDARD
-		[SecurityPermission(SecurityAction.Demand,	SerializationFormatter	=	true)]
-		public	void	GetObjectData(SerializationInfo	info,	StreamingContext	context)
+#if !NETSTANDARD
+		[SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
+		public void GetObjectData(SerializationInfo info, StreamingContext context)
 		{
-			if	(info	==	null)	throw	new	ArgumentNullException("info");
-			info.AddValue("SemVersion",	ToString());
+			if (info == null) throw new ArgumentNullException("info");
+			info.AddValue("SemVersion", ToString());
 		}
 #endif
 
@@ -462,9 +452,9 @@ namespace	Semver
 		///	</summary>
 		///	<param	name="version">The	semantic	version.</param>
 		///	<returns>The	SemVersion	object.</returns>
-		public	static	implicit	operator	SemVersion(string	version)
+		public static implicit operator SemVersion(string version)
 		{
-			return	SemVersion.Parse(version);
+			return Parse(version);
 		}
 
 		///	<summary>
@@ -473,9 +463,9 @@ namespace	Semver
 		///	<param	name="left">The	left	value.</param>
 		///	<param	name="right">The	right	value.</param>
 		///	<returns>If	left	is	equal	to	right	<c>true</c>,	else	<c>false</c>.</returns>
-		public	static	bool	operator	==(SemVersion	left,	SemVersion	right)
+		public static bool operator ==(SemVersion left, SemVersion right)
 		{
-			return	SemVersion.Equals(left,	right);
+			return Equals(left, right);
 		}
 
 		///	<summary>
@@ -484,9 +474,9 @@ namespace	Semver
 		///	<param	name="left">The	left	value.</param>
 		///	<param	name="right">The	right	value.</param>
 		///	<returns>If	left	is	not	equal	to	right	<c>true</c>,	else	<c>false</c>.</returns>
-		public	static	bool	operator	!=(SemVersion	left,	SemVersion	right)
+		public static bool operator !=(SemVersion left, SemVersion right)
 		{
-			return	!SemVersion.Equals(left,	right);
+			return !Equals(left, right);
 		}
 
 		///	<summary>
@@ -495,9 +485,9 @@ namespace	Semver
 		///	<param	name="left">The	left	value.</param>
 		///	<param	name="right">The	right	value.</param>
 		///	<returns>If	left	is	greater	than	right	<c>true</c>,	else	<c>false</c>.</returns>
-		public	static	bool	operator	>(SemVersion	left,	SemVersion	right)
+		public static bool operator >(SemVersion left, SemVersion right)
 		{
-			return	SemVersion.Compare(left,	right)	>	0;
+			return Compare(left, right) > 0;
 		}
 
 		///	<summary>
@@ -506,9 +496,9 @@ namespace	Semver
 		///	<param	name="left">The	left	value.</param>
 		///	<param	name="right">The	right	value.</param>
 		///	<returns>If	left	is	greater	than	or	equal	to	right	<c>true</c>,	else	<c>false</c>.</returns>
-		public	static	bool	operator	>=(SemVersion	left,	SemVersion	right)
+		public static bool operator >=(SemVersion left, SemVersion right)
 		{
-			return	left	==	right	||	left	>	right;
+			return left == right || left > right;
 		}
 
 		///	<summary>
@@ -517,9 +507,9 @@ namespace	Semver
 		///	<param	name="left">The	left	value.</param>
 		///	<param	name="right">The	right	value.</param>
 		///	<returns>If	left	is	less	than	right	<c>true</c>,	else	<c>false</c>.</returns>
-		public	static	bool	operator	<(SemVersion	left,	SemVersion	right)
+		public static bool operator <(SemVersion left, SemVersion right)
 		{
-			return	SemVersion.Compare(left,	right)	<	0;
+			return Compare(left, right) < 0;
 		}
 
 		///	<summary>
@@ -528,9 +518,9 @@ namespace	Semver
 		///	<param	name="left">The	left	value.</param>
 		///	<param	name="right">The	right	value.</param>
 		///	<returns>If	left	is	less	than	or	equal	to	right	<c>true</c>,	else	<c>false</c>.</returns>
-		public	static	bool	operator	<=(SemVersion	left,	SemVersion	right)
+		public static bool operator <=(SemVersion left, SemVersion right)
 		{
-			return	left	==	right	||	left	<	right;
+			return left == right || left < right;
 		}
 	}
 }

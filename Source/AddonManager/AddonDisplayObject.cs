@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Windows.Controls;
-using System.Windows;
-using System.Net;
 using System.Diagnostics;
+using System.Net;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace AddonManager
 {
@@ -18,47 +18,49 @@ namespace AddonManager
 		public bool Invalid = false;
 
 
-		public float downloadProgress = 0f;
+		public float downloadProgress;
 
 		public void OverrideCurrentDisplay(AddonObject display)
 		{
-			if (!this.addons.Contains(this.currentDisplay))
-				this.addons.Add(this.currentDisplay);
+			if (!addons.Contains(currentDisplay))
+				addons.Add(currentDisplay);
 
-			this.currentDisplay = display;
-			this.addons.Add(display);
+			currentDisplay = display;
+			addons.Add(display);
 		}
 
 		public void AddAddon(AddonObject display)
 		{
-			this.addons.Add(display);
+			addons.Add(display);
 		}
 
 		public void StartDownload()
 		{
 			if (DownloadManager.AddonFileExists(this))
 			{
-				AddonObject obj = this.GetOtherInstalled();
-				if(obj != null)
+				AddonObject obj = GetOtherInstalled();
+				if (obj != null)
 				{
 					if (Settings.isTosRunning())
 					{
-						Settings.CauseError("Please close ToS before downloading a different version.", "Close ToS", new ErrorButtonCallback(() => { Settings.CloseTos(); }));
+						Settings.CauseError("Please close ToS before downloading a different version.", "Close ToS",
+							Settings.CloseTos);
 
 						return;
 					}
+
 					//Removes current installed addon
 					DownloadManager.DeleteAddon(obj, false);
 				}
+
 				//Set the progress to 0
-				this.addonControl.DynamicNotificationBG.Width = 0;
+				addonControl.DynamicNotificationBG.Width = 0;
 
 				//Update the display
-				this.currentDisplay.IsQueued = true;
-				this.tabManager.PopulateAddon(this, 0, 0);
+				currentDisplay.IsQueued = true;
+				tabManager.PopulateAddon(this, 0, 0);
 
 				DownloadManager.Queue(this, UpdateDownloadProgress);
-
 			}
 			else
 			{
@@ -69,10 +71,10 @@ namespace AddonManager
 
 		public void StartUpdate()
 		{
-			if (!this.currentDisplay.hasUpdate)
+			if (!currentDisplay.hasUpdate)
 				return;
 
-			AddonObject newObj = this.GetNewest();
+			AddonObject newObj = GetNewest();
 
 
 			//The file can't be downloaded
@@ -83,23 +85,23 @@ namespace AddonManager
 			}
 
 			//Make sure it isn't the exact same version
-			if (newObj == this.currentDisplay)
+			if (newObj == currentDisplay)
 			{
 				Settings.CauseError("Cannot update to the same version.");
 				return;
 			}
 
 			//Remove the current installed file
-			this.Remove(true);
+			Remove(true);
 
 			//Set the display to the newest version
-			this.currentDisplay = newObj;
+			currentDisplay = newObj;
 
 			//Set the progress to 0
-			this.addonControl.DynamicNotificationBG.Width = 0;
+			addonControl.DynamicNotificationBG.Width = 0;
 
 			//Update the display
-			this.tabManager.PopulateAddon(this, 0, 0);
+			tabManager.PopulateAddon(this, 0, 0);
 
 			//Download the newest version
 			DownloadManager.Queue(this, UpdateDownloadProgress);
@@ -109,35 +111,35 @@ namespace AddonManager
 		{
 			if (Settings.isTosRunning())
 			{
-				Settings.CauseError("Please close ToS before "+(isUpdate?"updating":"removing")+" addons.", "Close ToS", new ErrorButtonCallback(() => { Settings.CloseTos(); }));
+				Settings.CauseError("Please close ToS before " + (isUpdate ? "updating" : "removing") + " addons.",
+					"Close ToS", Settings.CloseTos);
 				return;
 			}
 
 			if (!isUpdate)
 			{
-				AddonObject installedObj = this.GetOtherInstalled();
+				AddonObject installedObj = GetOtherInstalled();
 
 				//Remove it from the list if there isn't another installed one
 				if (installedObj == null)
 				{
-					this.InstalledAddons.RemoveAddon(this);
-					DownloadManager.DeleteAddon(this, true);
+					InstalledAddons.RemoveAddon(this);
+					DownloadManager.DeleteAddon(this);
 				}
 				else //Remove it and update the display to the installed one
 				{
 					DownloadManager.DeleteAddon(this, false);
 					//Set it to uninstalled
-					this.currentDisplay.isInstalled = false;
+					currentDisplay.isInstalled = false;
 					//Update the display
-					this.currentDisplay = installedObj;
-					this.tabManager.PopulateAddon(this, 0, 0);
+					currentDisplay = installedObj;
+					tabManager.PopulateAddon(this, 0, 0);
 				}
-
 			}
 			else
 			{
-				this.currentDisplay.isInstalled = false;
-				this.currentDisplay.hasUpdate = false;
+				currentDisplay.isInstalled = false;
+				currentDisplay.hasUpdate = false;
 				DownloadManager.DeleteAddon(this, false);
 			}
 		}
@@ -150,26 +152,26 @@ namespace AddonManager
 
 			if (downloadProgress < 100f)
 			{
-				this.addonControl.DynamicNotificationBG.Visibility = Visibility.Visible;
-				this.addonControl.DynamicNotificationBG.Width = (529f/100f)*downloadProgress;
+				addonControl.DynamicNotificationBG.Visibility = Visibility.Visible;
+				addonControl.DynamicNotificationBG.Width = 529f / 100f * downloadProgress;
 			}
 			else
 			{
 				//this.addonControl.DynamicNotificationBG.Visibility = Visibility.Hidden;
-				this.addonControl.DynamicNotificationBG.Width = 529f;
+				addonControl.DynamicNotificationBG.Width = 529f;
 			}
 
 			//Update the display
-			this.tabManager.PopulateAddon(this, 0, 0);
+			tabManager.PopulateAddon(this, 0, 0);
 		}
 
-		AddonObject GetNewest()
+		private AddonObject GetNewest()
 		{
-			List<AddonObject> _versionList = new List<AddonObject>(this.addons);
+			//List<AddonObject> _versionList = new List<AddonObject>(this.addons);
 
 			AddonObject newest = null;
 
-			foreach (AddonObject obj in this.addons)
+			foreach (AddonObject obj in addons)
 			{
 				if (newest == null)
 				{
@@ -177,32 +179,26 @@ namespace AddonManager
 					continue;
 				}
 
-				if (obj > newest)
-				{
-					newest = obj;
-				}
+				if (obj > newest) newest = obj;
 			}
+
 			Debug.WriteLine("Newest: " + newest.addon.fileVersion);
 			return newest;
 		}
 
-		AddonObject GetOtherInstalled()
+		private AddonObject GetOtherInstalled()
 		{
-			foreach (AddonObject obj in this.addons)
-			{
-				if (obj.isInstalled && obj.addon.fileVersion != this.currentDisplay.addon.fileVersion)
-				{
+			foreach (AddonObject obj in addons)
+				if (obj.isInstalled && obj.addon.fileVersion != currentDisplay.addon.fileVersion)
 					return obj;
-				}
-			}
 			return null;
 		}
 
 		public void DisplayReadme()
 		{
-			string readme = DownloadManager.GetReadme(this.currentDisplay);
+			string readme = DownloadManager.GetReadme(currentDisplay);
 
-			if(readme == "ERROR")
+			if (readme == "ERROR")
 			{
 				Settings.CauseError("No Readme available.");
 				return;
@@ -212,6 +208,5 @@ namespace AddonManager
 			handler.DisplayReadme(readme);
 			handler.ShowDialog();
 		}
-
 	}
 }

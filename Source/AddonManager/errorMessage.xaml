@@ -5,16 +5,21 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AddonManager"
         mc:Ignorable="d"
-        Title="Error" Height="95.181" Width="369.042" Topmost="True" WindowStartupLocation="CenterScreen" ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStyle="None" ResizeMode="NoResize">
+        Title="Error" Height="95.181" Width="369.042" Topmost="True" WindowStartupLocation="CenterScreen"
+        ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStyle="None" ResizeMode="NoResize">
     <Grid Background="#FF444444">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="0*"/>
+            <ColumnDefinition />
+            <ColumnDefinition Width="0*" />
         </Grid.ColumnDefinitions>
-        <Label x:Name="errorlabel" Foreground="#FFF" Content="Label" HorizontalAlignment="Left" Margin="10,29,0,0" VerticalAlignment="Top" Width="349" Height="26"/>
-        <Button Content="Button" x:Name="errorbutton" HorizontalAlignment="Left" Margin="90,60,0,0" VerticalAlignment="Top" Width="75" Click="Errorbutton_Click" Height="20"/>
-        <Button x:Name="okButton" Content="Ok" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click" Height="20"/>
-        <Label x:Name="titleLabel" Content="Error" Foreground="#FFF" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" FontSize="16" Margin="0,-2,0,0" Height="31" Width="359"/>
+        <Label x:Name="errorlabel" Foreground="#FFF" Content="Label" HorizontalAlignment="Left" Margin="10,29,0,0"
+               VerticalAlignment="Top" Width="349" Height="26" />
+        <Button Content="Button" x:Name="errorbutton" HorizontalAlignment="Left" Margin="90,60,0,0"
+                VerticalAlignment="Top" Width="75" Click="Errorbutton_Click" Height="20" />
+        <Button x:Name="okButton" Content="Ok" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top"
+                Width="75" Click="Button_Click" Height="20" />
+        <Label x:Name="titleLabel" Content="Error" Foreground="#FFF" HorizontalAlignment="Left" VerticalAlignment="Top"
+               FontWeight="Bold" FontSize="16" Margin="0,-2,0,0" Height="31" Width="359" />
 
     </Grid>
 </Window>

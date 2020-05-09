@@ -1,45 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Diagnostics;
 using System.Windows.Threading;
-using FontAwesome.WPF;
-using System.Timers;
-using System.Reflection;
-
+using Application = System.Windows.Forms.Application;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using TabControl = System.Windows.Controls.TabControl;
+using Timer = System.Timers.Timer;
 
 namespace AddonManager
 {
-	public partial class MainWindow : Window
+	public partial class MainWindow
 	{
-
 		public static Settings settings = new Settings();
 
-		bool hasValidToSFolder = false;
+		private bool hasValidToSFolder;
 
 		public static TabControl ToSTabs;
 
 		//private static List<TabManager> tabManagers = new List<TabManager>();
-		private static TabManager tabManager;
+		public static TabManager tabManager;
 		public static ManagerDebug debugManager;
 
 		public MainWindow()
 		{
-			AppDomain currentDomain = default(AppDomain);
-			currentDomain = AppDomain.CurrentDomain;
+			AppDomain currentDomain = AppDomain.CurrentDomain;
 			currentDomain.UnhandledException += GlobalUnhandledExceptionHandler;
-			System.Windows.Forms.Application.ThreadException += GlobalThreadExceptionHandler;
+			Application.ThreadException += GlobalThreadExceptionHandler;
 			debugManager = new ManagerDebug();
 			Debug.Listeners.Add(debugManager);
 
@@ -54,22 +51,20 @@ namespace AddonManager
 
 			settings.LoadSettings();
 
-			AddonManager.Language.CurrentLanguage = (settings.Language != string.Empty && settings.Language != null) ? settings.Language : "en";
+			AddonManager.Language.CurrentLanguage = !string.IsNullOrEmpty(settings.Language) ? settings.Language : "en";
 			AddonManager.Language.Init();
 
-			string[] languages = AddonManager.Language.GetAvailable();
+			var languages = AddonManager.Language.GetAvailable();
 			if (languages.Length > 0)
-			{
 				foreach (string lang in languages)
 				{
 					LanguageSelect.Items.Add(lang.ToUpper());
 					if (lang.ToLower() == AddonManager.Language.CurrentLanguage.ToLower())
 						LanguageSelect.SelectedItem = lang.ToUpper();
 				}
-			}
 
 
-			Dispatcher.BeginInvoke((Action)(() => tosTabs.SelectedIndex = 1));
+			Dispatcher.BeginInvoke((Action) (() => tosTabs.SelectedIndex = 1));
 			//LoadingCanvas.Visibility = Visibility.Hidden;
 			SetLabels();
 
@@ -77,7 +72,7 @@ namespace AddonManager
 #if !DEBUG
 			debugTab.Visibility = Visibility.Hidden;
 #endif
-
+			developerTab.Visibility = Visibility.Hidden;
 		}
 
 		public TabManager GetTabManager()
@@ -92,28 +87,25 @@ namespace AddonManager
 
 		private static void GlobalUnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
 		{
-			Exception ex = default(Exception);
-			ex = (Exception)e.ExceptionObject;
+			Exception ex = (Exception) e.ExceptionObject;
 
 			CrashHandler handler = new CrashHandler();
 			handler.Crash(ex.Message, ex.StackTrace);
 			handler.ShowDialog();
 		}
 
-		private static void GlobalThreadExceptionHandler(object sender, System.Threading.ThreadExceptionEventArgs e)
+		private static void GlobalThreadExceptionHandler(object sender, ThreadExceptionEventArgs e)
 		{
-			Exception ex = default(Exception);
-			ex = e.Exception;
+			Exception ex = e.Exception;
 
 			CrashHandler handler = new CrashHandler();
 			handler.Crash(ex.Message, ex.StackTrace);
 			handler.ShowDialog();
-
-
 		}
 
-		bool addTabsOnce = false;
-		void AddTabManagers()
+		private bool addTabsOnce;
+
+		private void AddTabManagers()
 		{
 			if (addTabsOnce)
 				return;
@@ -122,20 +114,20 @@ namespace AddonManager
 			string itosSource = "https://raw.githubusercontent.com/JTosAddon/Addons/itos/managers.json";
 			string jtosSource = "https://raw.githubusercontent.com/JTosAddon/Addons/master/managers.json";
 
-			tabManager = new TabManager(new Dictionary<string, string>() { { "IToS", itosSource }, { "JToS", jtosSource } });
-			//tabManagers.Add(new TabManager("JToS", jtosSource));
-
+			tabManager = new TabManager(new Dictionary<string, string> {{"IToS", itosSource}, {"JToS", jtosSource}});
 
 			addTabsOnce = true;
 		}
 
 
-		void SetLabels()
+		private void SetLabels()
 		{
-			string ver = (settings.Version != 0 && settings.Version > 99) ? settings.Version.ToString() : "ERR";
+			string ver = settings.Version != 0 && settings.Version > 99 ? settings.Version.ToString() : "ERR";
 			ver = "v" + ver[0] + "." + ver[1] + "." + ver[2];
+			Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+			VersionLabel.Content = $"{ver}.{version.Build}.{version.Revision}";
 
-			VersionLabel.Content = ver;
+			dateCheck.IsChecked = settings.LoadDates;
 
 
 			configure.Text = AddonManager.Language.Translate("SETTINGS.CONFIGURE_FOLDER");
@@ -145,7 +137,7 @@ namespace AddonManager
 			AddonTab.Header = AddonManager.Language.Translate("TAB.BROWSE");
 			InstalledAddonTab.Header = AddonManager.Language.Translate("TAB.INSTALLED");
 
-			
+
 			newVersion.Visibility = Visibility.Hidden;
 
 			ToSClientText.Text = settings.TosFolder;
@@ -157,12 +149,11 @@ namespace AddonManager
 			AddonSearchBar.Foreground = new SolidColorBrush(Color.FromRgb(150, 150, 150));
 
 			groupCheck.IsChecked = settings.IsGrouped;
-
 		}
 
-		private Stopwatch _timer = new Stopwatch();
+		private readonly Stopwatch _timer = new Stopwatch();
 
-		private void _ToSFolderCheck()
+		/*private void _ToSFolderCheck()
 		{
 			ToSError.Content = "";
 			hasValidToSFolder = true;
@@ -181,7 +172,7 @@ namespace AddonManager
 			aTimer.Enabled = true;
 
 			WaitForManagers();
-		}
+		}*/
 
 		private void ToSFolderCheck()
 		{
@@ -215,7 +206,8 @@ namespace AddonManager
 
 			if (folderError)
 			{
-				ToSError.Content = new Run(AddonManager.Language.Translate("SETTINGS.INVALID_FOLDER")) { FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0)) };
+				ToSError.Content = new Run(AddonManager.Language.Translate("SETTINGS.INVALID_FOLDER"))
+					{FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0))};
 				hasValidToSFolder = false;
 			}
 			else
@@ -231,41 +223,101 @@ namespace AddonManager
 					LoadingCanvas.Visibility = Visibility.Visible;
 					LoadingLabel.Content = "Collecting Addon Data";
 
-					LoadingFunLabel.Content = funLabels[new Random(Guid.NewGuid().GetHashCode()).Next(0, funLabels.Count)];
+					LoadingFunLabel.Content =
+						funLabels[new Random(Guid.NewGuid().GetHashCode()).Next(0, funLabels.Count)];
 
 					Timer aTimer = new Timer();
 					aTimer.Elapsed += (sender, e) => OnTimedEvent(sender, e, this);
-					aTimer.Interval = 2000;
+					aTimer.Interval = 5000;
 					aTimer.Enabled = true;
 
 					WaitForManagers();
-					
 				}
-
 			}
 		}
 
 		private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
 		{
-			System.Diagnostics.Process.Start(e.Uri.ToString());
+			Process.Start(e.Uri.ToString());
 		}
 
-		List<String> funLabels = new List<String>() { "Popolions rule!", "Transfering TP...", "Paying $50...", "Finding Talt...", "Bugging ersakoz...", "Threatening Tchuu...", "Finding more work for Elec...", "RIP Xanaxiel...", "Calling IMC to give us less FPS...", "Looking for Cmdr.LoadFail...", "Collecting Tanu Leaf...", "Praying for the Miko quest...", "Waiting for Coursing to run out...", "Declaring War...", "Using Black Card Album...", "Catching Golden Fish...", "Waiting in queue(2 out of 5)...", "Never gonna fix you up...", "Classic Inventory when?", "Extracting Skill Gems..." };
+		private int sortMode = 1;
+		private string lastSort = "";
+
+		private void DoSort(string sortBy, bool ovrride=false)
+		{
+
+			if (lastSort != sortBy)
+				sortMode = 1;
+			if (ovrride)
+				sortMode = 1;
+
+			lastSort = sortBy;
+			sortMode = sortMode == 0 ? 1 : 0;
+			tabManager.SortList(sortBy, sortMode);
+
+			if (sortMode == 0)
+			{
+				SearchNameArrow.Source = new BitmapImage(new Uri("pack://application:,,,/UI/downarrow.png"));
+				SearchDateArrow.Source = new BitmapImage(new Uri("pack://application:,,,/UI/downarrow.png"));
+				SearchDevArrow.Source = new BitmapImage(new Uri("pack://application:,,,/UI/downarrow.png"));
+			}
+			else
+			{
+				SearchNameArrow.Source = new BitmapImage(new Uri("pack://application:,,,/UI/uparrow.png"));
+				SearchDateArrow.Source = new BitmapImage(new Uri("pack://application:,,,/UI/uparrow.png"));
+				SearchDevArrow.Source = new BitmapImage(new Uri("pack://application:,,,/UI/uparrow.png"));
+			}
+
+			switch (sortBy)
+			{
+				case "Name":
+					SearchNameArrow.Visibility = Visibility.Visible;
+					SearchDateArrow.Visibility = Visibility.Hidden;
+					SearchDevArrow.Visibility = Visibility.Hidden;
+					break;
+				case "Date":
+					SearchNameArrow.Visibility = Visibility.Hidden;
+					SearchDateArrow.Visibility = Visibility.Visible;
+					SearchDevArrow.Visibility = Visibility.Hidden;
+					break;
+				case "Dev":
+					SearchNameArrow.Visibility = Visibility.Hidden;
+					SearchDateArrow.Visibility = Visibility.Hidden;
+					SearchDevArrow.Visibility = Visibility.Visible;
+					break;
+			}
+		}
+
+		private void RequestSort(object sender, RequestNavigateEventArgs e)
+		{
+			string sortBy = e.Uri.ToString();
+			DoSort(sortBy);
+		}
+
+		private readonly List<string> funLabels = new List<string>
+		{
+			"Popolions rule!", "Transfering TP...", "Paying $50...", "Finding Talt...", "Bugging ersakoz...",
+			"Threatening Tchuu...", "Finding more work for Elec...", "RIP Xanaxiel...",
+			"Calling IMC to give us less FPS...", "Looking for Cmdr.LoadFail...", "Collecting Tanu Leaf...",
+			"Praying for the Miko quest...", "Waiting for Coursing to run out...", "Declaring War...",
+			"Using Black Card Album...", "Catching Golden Fish...", "Waiting in queue(2 out of 5)...",
+			"Never gonna fix you up...", "Classic Inventory when?", "Extracting Skill Gems..."
+		};
 
 		private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
 		{
-			if(settings.TosFolder != ToSClientText.Text)
+			if (settings.TosFolder != ToSClientText.Text)
 			{
 				settings.TosFolder = ToSClientText.Text;
 				settings.Save();
 				ToSFolderCheck();
 			}
-
 		}
 
 		private void LanguageSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			dynamic selectedItem = LanguageSelect.SelectedItem as dynamic;
+			dynamic selectedItem = LanguageSelect.SelectedItem;
 			string selectedLang = selectedItem.ToLower();
 
 			if (AddonManager.Language.CurrentLanguage != selectedLang)
@@ -282,7 +334,7 @@ namespace AddonManager
 
 		private void BrowseButton_Click(object sender, RoutedEventArgs e)
 		{
-			System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog
+			FolderBrowserDialog dialog = new FolderBrowserDialog
 			{
 				ShowNewFolderButton = false,
 				RootFolder = Environment.SpecialFolder.Desktop,
@@ -290,39 +342,36 @@ namespace AddonManager
 				Description = "Select the ToS directory."
 			};
 
-			System.Windows.Forms.DialogResult res = dialog.ShowDialog();
+			DialogResult res = dialog.ShowDialog();
 
 
-			if(System.Windows.Forms.DialogResult.OK == res)
+			switch (res)
 			{
-				ToSClientText.Text = dialog.SelectedPath;
+				case System.Windows.Forms.DialogResult.OK:
+					ToSClientText.Text = dialog.SelectedPath;
+					break;
+				case System.Windows.Forms.DialogResult.Cancel:
+					return;
 			}
-			else if(System.Windows.Forms.DialogResult.Cancel == res)
-			{
-				return;
-			}
-
-
 		}
 
 		private int oldSelectedTab = 1;
+
 		private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			
-			dynamic selectedItem = tosTabs.SelectedItem as dynamic;
-			string selectedTab = selectedItem.Header;
+			dynamic selectedItem = tosTabs.SelectedItem;
+			//string selectedTab = selectedItem.Header;
 
-			if (tosTabs.SelectedIndex != oldSelectedTab)
+			if (tosTabs.SelectedIndex == oldSelectedTab) return;
+			if (!hasValidToSFolder)
 			{
-				if (!hasValidToSFolder)
-				{
-					//Need to do this because even Microsoft isn't sure when SelectedIndex is set
-					Dispatcher.BeginInvoke((Action)(() => tosTabs.SelectedIndex = oldSelectedTab ));
+				//Need to do this because even Microsoft isn't sure when SelectedIndex is set
+				Dispatcher.BeginInvoke((Action) (() => tosTabs.SelectedIndex = oldSelectedTab));
 
-					return;
-				}
-				oldSelectedTab = tosTabs.SelectedIndex;
-			}			
+				return;
+			}
+
+			oldSelectedTab = tosTabs.SelectedIndex;
 		}
 
 		private void DiscordButton_Click(object sender, RoutedEventArgs e)
@@ -330,7 +379,7 @@ namespace AddonManager
 			Process.Start("https://discord.gg/hgxRFwy");
 		}
 
-		async void WaitForManagers()
+		private async void WaitForManagers()
 		{
 			//if (settings.FirstStart)
 			{
@@ -344,21 +393,23 @@ namespace AddonManager
 
 		private static void OnTimedEvent(object source, ElapsedEventArgs e, MainWindow win)
 		{
-			win.LoadingFunLabel.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
-			{
-				win.LoadingFunLabel.Content = win.funLabels[new Random(Guid.NewGuid().GetHashCode()).Next(0, win.funLabels.Count)];
-			}));
+			win.LoadingFunLabel.Dispatcher.Invoke(DispatcherPriority.Normal,
+				new Action(() =>
+				{
+					win.LoadingFunLabel.Content =
+						win.funLabels[new Random(Guid.NewGuid().GetHashCode()).Next(0, win.funLabels.Count)];
+				}));
 		}
 
 		public void WaitForManagersTask()
 		{
 			int fin = 0;
-			while(fin < 1)
+			while (fin < 1)
 			{
 				Task.Delay(10);
 				fin = 0;
 
-				if(tabManager != null)
+				if (tabManager != null)
 					if (tabManager.isFinishedLoading)
 						fin++;
 			}
@@ -367,49 +418,47 @@ namespace AddonManager
 			//TimeSpan ts = TimeSpan.FromMilliseconds(500000);
 			//if (t.Wait(ts))
 			{
-				LoadingCanvas.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
-				{
-					LoadingCanvas.Visibility = Visibility.Hidden;
-				}));
+				LoadingCanvas.Dispatcher.Invoke(DispatcherPriority.Normal,
+					new Action(() => { LoadingCanvas.Visibility = Visibility.Hidden; }));
 
 
 				_timer.Stop();
 				Debug.WriteLine(_timer.Elapsed);
 
 
-				tabManager.DisplayAddons();
+				//DoSort("Name");
+				tabManager?.DisplayAddons();
+				
 
 
 				if (settings.HasNewVersion())
-				{
-					Dispatcher.BeginInvoke((Action)(() => 
-						Settings.CauseError("A new version is available", "Update Available", "Update Later", "Update Now", new ErrorButtonCallback(() => { Process.Start("AddonManagerUpdater.exe", "-version \"" + settings.GetVersion().ToString() + "\""); Environment.Exit(0); }))
-					));
-				}
-
+					Dispatcher.BeginInvoke((Action) (() =>
+							Settings.CauseError("A new version is available", "Update Available", "Update Later",
+								"Update Now", () =>
+								{
+									Process.Start("AddonManagerUpdater.exe",
+										"-version \"" + settings.GetVersion() + "\"");
+									Environment.Exit(0);
+								})
+						));
 			}
 		}
 
 		public void UpdateLoadingBarMax(int maxBar)
 		{
-			LoadingDataBar.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
-			{
-				LoadingDataBar.Maximum = LoadingDataBar.Maximum+maxBar;
-			}));
+			LoadingDataBar.Dispatcher.Invoke(DispatcherPriority.Normal,
+				new Action(() => { LoadingDataBar.Maximum = LoadingDataBar.Maximum + maxBar; }));
 		}
 
 		public void UpdateLoadingBarCurrent(int current)
 		{
-			LoadingDataBar.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(() =>
-			{
-				LoadingDataBar.Value = LoadingDataBar.Value + current;
-			}));
+			LoadingDataBar.Dispatcher.Invoke(DispatcherPriority.Normal,
+				new Action(() => { LoadingDataBar.Value = LoadingDataBar.Value + current; }));
 		}
 
 		public void RebuildAddonTextList()
 		{
-			if(tabManager != null)
-				tabManager.UpdateTabElements();
+			tabManager?.UpdateTabElements();
 		}
 
 
@@ -426,14 +475,12 @@ namespace AddonManager
 		private void IToSSearchBar_KeyDown(object sender, KeyEventArgs e)
 		{
 			//check for enter key
-			if(e.Key == Key.Enter)
-			{
-				IToSSearchButton_Click(this, new RoutedEventArgs());
-			}
+			if (e.Key == Key.Enter) IToSSearchButton_Click(this, new RoutedEventArgs());
 		}
 
 
-		bool searchBarWaterMark = false;
+		private bool searchBarWaterMark;
+
 		private void AddonSearchBar_GotFocus(object sender, RoutedEventArgs e)
 		{
 			if (!searchBarWaterMark && AddonSearchBar.Text == "Search...")
@@ -450,20 +497,21 @@ namespace AddonManager
 			{
 				searchBarWaterMark = !searchBarWaterMark;
 				AddonSearchBar.Text = "Search...";
-				AddonSearchBar.Foreground = new SolidColorBrush(Color.FromRgb(150,150,150));
+				AddonSearchBar.Foreground = new SolidColorBrush(Color.FromRgb(150, 150, 150));
 			}
 		}
 
+		private bool firstScrollEvent;
 		private void AddonCanvas_ScrollChanged(object sender, ScrollChangedEventArgs e)
 		{
-			//var scrollViewer = (ScrollViewer)sender;
-			if (e.VerticalChange > 0)
-			{
-				if (e.VerticalOffset + e.ViewportHeight == e.ExtentHeight)
-				{
-					tabManager.LoadNextPage();
-				}
-			}
+			if (e.Source != null && e.Source.ToString() == "AddonManager.AddonControl")
+				return;
+
+			if (!(e.VerticalChange > 0)) return;
+			if (e.VerticalOffset + e.ViewportHeight != e.ExtentHeight) return;
+
+			tabManager.LoadNextPage(!firstScrollEvent);
+			firstScrollEvent = true;
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)
@@ -473,7 +521,92 @@ namespace AddonManager
 
 		private void CheckBox_Checked(object sender, RoutedEventArgs e)
 		{
-			settings.IsGrouped = groupCheck.IsChecked.Value;
+			if (!tabManager.isFinishedLoading)
+			{
+				groupCheck.IsChecked = !groupCheck.IsChecked;
+				return;
+			}
+
+			if (groupCheck.IsChecked != null) settings.IsGrouped = groupCheck.IsChecked.Value;
+
+			settings.Save();
+		}
+
+		private void DateBox_Checked(object sender, RoutedEventArgs e)
+		{
+			if (!tabManager.isFinishedLoading)
+			{
+				dateCheck.IsChecked = !dateCheck.IsChecked;
+				return;
+			}
+
+			if (dateCheck.IsChecked != null) settings.LoadDates = dateCheck.IsChecked.Value;
+
+			settings.Save();
+		}
+
+		private void DevCheck_Checked(object sender, RoutedEventArgs e)
+		{
+			developerTab.Visibility =
+				developerTab.Visibility == Visibility.Hidden ? Visibility.Visible : Visibility.Hidden;
+		}
+
+
+		private void DevClearButton_Click(object sender, RoutedEventArgs e)
+		{
+			DeveloperTools.ClearAddons();
+		}
+
+		private void Button_Click_1(object sender, RoutedEventArgs e)
+		{
+			OpenFileDialog dialog = new OpenFileDialog();
+
+			DialogResult res = dialog.ShowDialog();
+
+
+			switch (res)
+			{
+				case System.Windows.Forms.DialogResult.OK:
+					DeveloperTools.LoadAddon(dialog.FileName);
+					break;
+				case System.Windows.Forms.DialogResult.Cancel:
+					return;
+			}
+		}
+
+		private void FullModeButton_OnClickButton_Click(object sender, RoutedEventArgs e)
+		{
+			DoSort("Name", true);
+			tabManager.SwapDisplayMode(0);
+		}
+
+		private void CompactModeButton_OnClickButton_Click(object sender, RoutedEventArgs e)
+		{
+			DoSort("Name", true);
+			tabManager.SwapDisplayMode(1);
+		}
+	}
+
+	public class ScrollViewerEx : ScrollViewer
+	{
+		protected override void OnMouseWheel(MouseWheelEventArgs e)
+		{
+			if (Parent is UIElement parentElement)
+			{
+				if ((e.Delta > 0 && VerticalOffset == 0) ||
+				    (e.Delta < 0 && VerticalOffset == ScrollableHeight))
+				{
+					e.Handled = true;
+
+					MouseWheelEventArgs routedArgs = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+					{
+						RoutedEvent = MouseWheelEvent
+					};
+					parentElement.RaiseEvent(routedArgs);
+				}
+			}
+
+			base.OnMouseWheel(e);
 		}
 	}
 }

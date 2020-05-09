@@ -7,7 +7,8 @@
         mc:Ignorable="d"
         Title="Readme" Height="450" Width="800" Background="Black" WindowStartupLocation="CenterScreen">
     <Grid>
-        <WebBrowser x:Name="readmeBlock" LoadCompleted="ReadmeBlock_LoadCompleted" HorizontalAlignment="Left" Height="419" VerticalAlignment="Top" Width="792"/>
+        <WebBrowser x:Name="readmeBlock" LoadCompleted="ReadmeBlock_LoadCompleted" HorizontalAlignment="Left"
+                    Height="419" VerticalAlignment="Top" Width="792" />
 
 
     </Grid>

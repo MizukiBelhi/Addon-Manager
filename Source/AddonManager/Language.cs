@@ -1,21 +1,18 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
+using System.Linq;
 using System.Net.Http;
-using System.Collections;
+using System.Reflection;
 using System.Web.Script.Serialization;
 
 namespace AddonManager
 {
-	static class Language
+	internal static class Language
 	{
-
-		static Dictionary<string, LanguageDataObject> translationData;
+		private static Dictionary<string, LanguageDataObject> translationData;
 
 		public static string CurrentLanguage { get; set; }
 
@@ -27,20 +24,64 @@ namespace AddonManager
 		{
 			translationData = new Dictionary<string, LanguageDataObject>();
 
-			string[] dirFiles = Directory.GetFiles(JsonManager.ProgramFolder + "lang/","*.json");
+			//Preload language
+			LoadLanguageResource("en.json");
+			LoadLanguageResource("es.json");
+			LoadLanguageResource("fr.json");
+			LoadLanguageResource("ja.json");
+			LoadLanguageResource("ko.json");
+			LoadLanguageResource("pl.json");
+			LoadLanguageResource("pt-BR.json");
 
-			foreach(string file in dirFiles)
+			//We still load them after, for people who want to add new languages or change existing ones.
+			try
 			{
-				string fileName = Path.GetFileName(file);
-				string langName = fileName.Remove(fileName.Length - 5);
+				var dirFiles = Directory.GetFiles(JsonManager.ProgramFolder + "lang/", "*.json");
 
-				Debug.WriteLine("Trying: " + langName);
+				foreach (string file in dirFiles)
+				{
+					string fileName = Path.GetFileName(file);
+					string langName = fileName.Remove(fileName.Length - 5);
 
-				LanguageDataObject langObj = JsonManager.LoadFile<LanguageDataObject>("lang/" + fileName);
+					Debug.WriteLine("Trying: " + langName);
 
-				translationData.Add(langName.ToLower(), langObj);
+					LanguageDataObject langObj = JsonManager.LoadFile<LanguageDataObject>("lang/" + fileName);
 
-				Debug.WriteLine("Added Language: " + langName);
+					//Overwrite if it exists, otherwise add
+					if (translationData.ContainsKey(langName.ToLower()))
+						translationData[langName.ToLower()] = langObj;
+					else
+						translationData.Add(langName.ToLower(), langObj);
+
+					Debug.WriteLine("Added Language: " + langName);
+				}
+			}
+			catch (Exception)
+			{
+				//This is fine
+			}
+		}
+
+
+		private static void LoadLanguageResource(string fileName)
+		{
+			Assembly assembly = Assembly.GetExecutingAssembly();
+			string resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith(fileName));
+
+			using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+			{
+				if (stream == null) return;
+
+				using (StreamReader reader = new StreamReader(stream))
+				{
+					string _data = reader.ReadToEnd();
+
+					string langName = fileName.Remove(fileName.Length - 5);
+
+					LanguageDataObject langObj = JsonManager.LoadString<LanguageDataObject>(_data);
+
+					translationData.Add(langName.ToLower(), langObj);
+				}
 			}
 		}
 
@@ -50,7 +91,7 @@ namespace AddonManager
 		/// </summary>
 		public static string[] GetAvailable()
 		{
-			string[] availableLanguages = new List<string>(translationData.Keys).ToArray();
+			var availableLanguages = new List<string>(translationData.Keys).ToArray();
 
 			return availableLanguages;
 		}
@@ -58,22 +99,14 @@ namespace AddonManager
 
 		public static string Translate(string TransText)
 		{
-			if(CanTranslate(TransText))
-			{
-				return TranslateText(TransText);
-			}
-			else
-			{
-				return TranslateAPÌ( TranslateTextLang(TransText, "en") );
-			}
+			return CanTranslate(TransText) ? TranslateText(TransText) : TranslateApi(TranslateText(TransText, "en"));
 		}
 
-		public static string TranslateAPÌ(string input)
+		public static string TranslateApi(string input)
 		{
 			// Set the language from/to in the url (or pass it into this function)
-			string url = String.Format
-			("https://translate.googleapis.com/translate_a/single?client=gtx&sl={0}&tl={1}&dt=t&q={2}",
-			 "en", CurrentLanguage, Uri.EscapeUriString(input));
+			string url =
+				$"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl={CurrentLanguage}&dt=t&q={Uri.EscapeUriString(input)}";
 			HttpClient httpClient = new HttpClient();
 			string result = httpClient.GetStringAsync(url).Result;
 
@@ -81,7 +114,7 @@ namespace AddonManager
 			var jsonData = new JavaScriptSerializer().Deserialize<List<dynamic>>(result);
 
 			// Extract just the first array element (This is the only data we are interested in)
-			var translationItems = jsonData[0];
+			dynamic translationItems = jsonData[0];
 
 			// Translation Data
 			string translation = "";
@@ -99,11 +132,11 @@ namespace AddonManager
 				translationLineString.MoveNext();
 
 				// Save its value (translated text)
-				translation += string.Format(" {0}", Convert.ToString(translationLineString.Current));
+				translation += $" {Convert.ToString(translationLineString.Current)}";
 			}
 
 			// Remove first blank character
-			if (translation.Length > 1) { translation = translation.Substring(1); };
+			if (translation.Length > 1) translation = translation.Substring(1);
 
 			// Return translation
 			return translation;
@@ -116,21 +149,31 @@ namespace AddonManager
 				string _holder = TransText.Split('.')[0];
 				string _name = TransText.Split('.')[1];
 
-				PropertyInfo dataHolder = data.GetType().GetProperty(_holder, BindingFlags.Instance | BindingFlags.Public);
+				if (_holder == string.Empty)
+					return false;
+				if (_name == string.Empty)
+					return false;
 
-				if (dataHolder == null || _holder == string.Empty)
+				PropertyInfo dataHolder =
+					data.GetType().GetProperty(_holder, BindingFlags.Instance | BindingFlags.Public);
+
+				if (dataHolder == null)
 					return false;
 
 				object _data = dataHolder.GetValue(data);
 
-				PropertyInfo _dataProp = _data.GetType().GetProperty(_name, BindingFlags.Instance | BindingFlags.Public);
-
-				if (_dataProp == null || _name == string.Empty || _data == null)
+				if (_data == null)
 					return false;
 
-				string translatedText = (string)_dataProp.GetValue(_data);
+				PropertyInfo _dataProp =
+					_data.GetType().GetProperty(_name, BindingFlags.Instance | BindingFlags.Public);
 
-				if (translatedText == null || translatedText.Length == 0)
+				if (_dataProp == null)
+					return false;
+
+				string translatedText = (string) _dataProp.GetValue(_data);
+
+				if (string.IsNullOrEmpty(translatedText))
 					return false;
 			}
 			else
@@ -145,64 +188,38 @@ namespace AddonManager
 		/// <para /> See language file.
 		/// <para /> <example>If you have the word Search the Dictionary string would be "BROWSE.SEARCH".</example>
 		/// </summary>
-		public static string TranslateText(string TransText)
+		public static string TranslateText(string TransText, string lang="N/A")
 		{
-			string translatedText = "LANGUAGE_ERROR";
-
-			if (translationData.TryGetValue(CurrentLanguage, out LanguageDataObject data))
-			{
-				string _holder = TransText.Split('.')[0];
-				string _name = TransText.Split('.')[1];
-
-				PropertyInfo dataHolder = data.GetType().GetProperty(_holder, BindingFlags.Instance | BindingFlags.Public);
-
-				if (dataHolder == null || _holder == string.Empty)
-					return "LANG__NO__" + _holder.ToUpper();
-
-				object _data = dataHolder.GetValue(data);
-
-				PropertyInfo _dataProp = _data.GetType().GetProperty(_name, BindingFlags.Instance | BindingFlags.Public);
-
-				if (_dataProp == null || _name == string.Empty || _data == null)
-					return "LANG__NO__" + _name.ToUpper();
-
-				translatedText = (string)_dataProp.GetValue(_data);
-
-				if(translatedText == null || translatedText.Length == 0)
-					return "LANG__NO__" + _name.ToUpper();
-			}
-			else
-			{
-				return "NO__LANGUAGE__" + CurrentLanguage.ToUpper();
-			}
-
-			return translatedText;
-		}
-
-		public static string TranslateTextLang(string TransText, string lang)
-		{
-			string translatedText = "LANGUAGE_ERROR";
+			string translatedText;
+			if (lang == "N/A")
+				lang = CurrentLanguage;
 
 			if (translationData.TryGetValue(lang, out LanguageDataObject data))
 			{
 				string _holder = TransText.Split('.')[0];
 				string _name = TransText.Split('.')[1];
 
-				PropertyInfo dataHolder = data.GetType().GetProperty(_holder, BindingFlags.Instance | BindingFlags.Public);
+				PropertyInfo dataHolder =
+					data.GetType().GetProperty(_holder, BindingFlags.Instance | BindingFlags.Public);
 
-				if (dataHolder == null || _holder == string.Empty)
+				if (dataHolder == null && _holder == string.Empty)
+					return "LANG__NO__" + TransText;
+				if(dataHolder == null && _holder != string.Empty)
 					return "LANG__NO__" + _holder.ToUpper();
 
 				object _data = dataHolder.GetValue(data);
 
-				PropertyInfo _dataProp = _data.GetType().GetProperty(_name, BindingFlags.Instance | BindingFlags.Public);
+				PropertyInfo _dataProp =
+					_data.GetType().GetProperty(_name, BindingFlags.Instance | BindingFlags.Public);
 
-				if (_dataProp == null || _name == string.Empty || _data == null)
+				if (_dataProp == null && _name != string.Empty)
 					return "LANG__NO__" + _name.ToUpper();
+				if (_dataProp == null && _name == string.Empty)
+					return "LANG__NO__" + TransText;
 
-				translatedText = (string)_dataProp.GetValue(_data);
+				translatedText = (string) _dataProp.GetValue(_data);
 
-				if (translatedText == null || translatedText.Length == 0)
+				if (string.IsNullOrEmpty(translatedText))
 					return "LANG__NO__" + _name.ToUpper();
 			}
 			else
@@ -283,5 +300,4 @@ namespace AddonManager
 		public ADDONS ADDONS { get; set; }
 		public TOS TOS { get; set; }
 	}
-
 }

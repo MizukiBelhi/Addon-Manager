@@ -1,24 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Runtime.InteropServices;
 using System.Windows.Media;
-using System.Windows.Controls.Primitives;
 
 //These are all taken from MSDN for custom window style
 
-namespace AddonManager
+namespace AddonManager.UI
 {
 #pragma warning disable IDE0019 // Use pattern matching
 	public class WindowCloseCommand : ICommand
 	{
-
 		public bool CanExecute(object parameter)
 		{
 			return true;
@@ -28,12 +23,7 @@ namespace AddonManager
 
 		public void Execute(object parameter)
 		{
-			var window = parameter as Window;
-
-			if (window != null)
-			{
-				window.Close();
-			}
+			if (parameter is Window window) window.Close();
 		}
 	}
 
@@ -41,7 +31,7 @@ namespace AddonManager
 	{
 		public static ICommand GetExecuteCommand(DependencyObject obj)
 		{
-			return (ICommand)obj.GetValue(ExecuteCommand);
+			return (ICommand) obj.GetValue(ExecuteCommand);
 		}
 
 		public static void SetExecuteCommand(DependencyObject obj, ICommand command)
@@ -55,7 +45,7 @@ namespace AddonManager
 
 		public static Window GetExecuteCommandParameter(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(ExecuteCommandParameter);
+			return (Window) obj.GetValue(ExecuteCommandParameter);
 		}
 
 		public static void SetExecuteCommandParameter(DependencyObject obj, ICommand command)
@@ -63,32 +53,23 @@ namespace AddonManager
 			obj.SetValue(ExecuteCommandParameter, command);
 		}
 
-		public static readonly DependencyProperty ExecuteCommandParameter = DependencyProperty.RegisterAttached("ExecuteCommandParameter",
+		public static readonly DependencyProperty ExecuteCommandParameter = DependencyProperty.RegisterAttached(
+			"ExecuteCommandParameter",
 			typeof(Window), typeof(ControlDoubleClickBehavior));
 
 		private static void OnExecuteCommandChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var control = sender as Control;
-
-			if (control != null)
-			{
-				control.MouseDoubleClick += Control_MouseDoubleClick;
-			}
+			if (sender is Control control) control.MouseDoubleClick += Control_MouseDoubleClick;
 		}
 
-		static void Control_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+		private static void Control_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 		{
-			var control = sender as Control;
-
-			if (control != null)
+			if (sender is Control control)
 			{
-				var command = control.GetValue(ExecuteCommand) as ICommand;
-				var commandParameter = control.GetValue(ExecuteCommandParameter);
+				ICommand command = control.GetValue(ExecuteCommand) as ICommand;
+				object commandParameter = control.GetValue(ExecuteCommandParameter);
 
-				if (command.CanExecute(e))
-				{
-					command.Execute(commandParameter);
-				}
+				if (command.CanExecute(e)) command.Execute(commandParameter);
 			}
 		}
 	}
@@ -98,7 +79,7 @@ namespace AddonManager
 		public static void ShowMenu(Window targetWindow, Point menuLocation)
 		{
 			if (targetWindow == null)
-				throw new ArgumentNullException("TargetWindow is null.");
+				throw new ArgumentNullException(nameof(targetWindow));
 
 			int x, y;
 
@@ -119,7 +100,8 @@ namespace AddonManager
 
 			IntPtr wMenu = NativeMethods.GetSystemMenu(window, false);
 
-			int command = NativeMethods.TrackPopupMenuEx(wMenu, TPM_LEFTALIGN | TPM_RETURNCMD, x, y, window, IntPtr.Zero);
+			int command =
+				NativeMethods.TrackPopupMenuEx(wMenu, TPM_LEFTALIGN | TPM_RETURNCMD, x, y, window, IntPtr.Zero);
 
 			if (command == 0)
 				return;
@@ -130,11 +112,11 @@ namespace AddonManager
 
 	public static class ShowSystemMenuBehavior
 	{
-		#region TargetWindow 
+		#region TargetWindow
 
 		public static Window GetTargetWindow(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(TargetWindow);
+			return (Window) obj.GetValue(TargetWindow);
 		}
 
 		public static void SetTargetWindow(DependencyObject obj, Window window)
@@ -142,15 +124,16 @@ namespace AddonManager
 			obj.SetValue(TargetWindow, window);
 		}
 
-		public static readonly DependencyProperty TargetWindow = DependencyProperty.RegisterAttached("TargetWindow", typeof(Window), typeof(ShowSystemMenuBehavior));
+		public static readonly DependencyProperty TargetWindow =
+			DependencyProperty.RegisterAttached("TargetWindow", typeof(Window), typeof(ShowSystemMenuBehavior));
 
 		#endregion
 
-		#region LeftButtonShowAt 
+		#region LeftButtonShowAt
 
 		public static UIElement GetLeftButtonShowAt(DependencyObject obj)
 		{
-			return (UIElement)obj.GetValue(LeftButtonShowAt);
+			return (UIElement) obj.GetValue(LeftButtonShowAt);
 		}
 
 		public static void SetLeftButtonShowAt(DependencyObject obj, UIElement element)
@@ -158,17 +141,18 @@ namespace AddonManager
 			obj.SetValue(LeftButtonShowAt, element);
 		}
 
-		public static readonly DependencyProperty LeftButtonShowAt = DependencyProperty.RegisterAttached("LeftButtonShowAt",
+		public static readonly DependencyProperty LeftButtonShowAt = DependencyProperty.RegisterAttached(
+			"LeftButtonShowAt",
 			typeof(UIElement), typeof(ShowSystemMenuBehavior),
 			new UIPropertyMetadata(null, LeftButtonShowAtChanged));
 
 		#endregion
 
-		#region RightButtonShow 
+		#region RightButtonShow
 
 		public static bool GetRightButtonShow(DependencyObject obj)
 		{
-			return (bool)obj.GetValue(RightButtonShow);
+			return (bool) obj.GetValue(RightButtonShow);
 		}
 
 		public static void SetRightButtonShow(DependencyObject obj, bool arg)
@@ -176,35 +160,31 @@ namespace AddonManager
 			obj.SetValue(RightButtonShow, arg);
 		}
 
-		public static readonly DependencyProperty RightButtonShow = DependencyProperty.RegisterAttached("RightButtonShow",
+		public static readonly DependencyProperty RightButtonShow = DependencyProperty.RegisterAttached(
+			"RightButtonShow",
 			typeof(bool), typeof(ShowSystemMenuBehavior),
 			new UIPropertyMetadata(false, RightButtonShowChanged));
 
 		#endregion
 
-		#region LeftButtonShowAt 
+		#region LeftButtonShowAt
 
-		static void LeftButtonShowAtChanged(object sender, DependencyPropertyChangedEventArgs e)
+		private static void LeftButtonShowAtChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var element = sender as UIElement;
-
-			if (element != null)
-			{
-				element.MouseLeftButtonDown += LeftButtonDownShow;
-			}
+			if (sender is UIElement element) element.MouseLeftButtonDown += LeftButtonDownShow;
 		}
 
-		static bool leftButtonToggle = true;
+		private static bool leftButtonToggle = true;
 
-		static void LeftButtonDownShow(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private static void LeftButtonDownShow(object sender, MouseButtonEventArgs e)
 		{
 			if (leftButtonToggle)
 			{
-				var element = ((UIElement)sender).GetValue(LeftButtonShowAt);
+				object element = ((UIElement) sender).GetValue(LeftButtonShowAt);
 
-				var showMenuAt = ((Visual)element).PointToScreen(new Point(0, 0));
+				Point showMenuAt = ((Visual) element).PointToScreen(new Point(0, 0));
 
-				var targetWindow = ((UIElement)sender).GetValue(TargetWindow) as Window;
+				Window targetWindow = ((UIElement) sender).GetValue(TargetWindow) as Window;
 
 				SystemMenuManager.ShowMenu(targetWindow, showMenuAt);
 
@@ -218,25 +198,20 @@ namespace AddonManager
 
 		#endregion
 
-		#region RightButtonShow handlers 
+		#region RightButtonShow handlers
 
 		private static void RightButtonShowChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var element = sender as UIElement;
-
-			if (element != null)
-			{
-				element.MouseRightButtonDown += RightButtonDownShow;
-			}
+			if (sender is UIElement element) element.MouseRightButtonDown += RightButtonDownShow;
 		}
 
-		static void RightButtonDownShow(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private static void RightButtonDownShow(object sender, MouseButtonEventArgs e)
 		{
-			var element = (UIElement)sender;
+			UIElement element = (UIElement) sender;
 
-			var targetWindow = element.GetValue(TargetWindow) as Window;
+			Window targetWindow = element.GetValue(TargetWindow) as Window;
 
-			var showMenuAt = targetWindow.PointToScreen(Mouse.GetPosition((targetWindow)));
+			Point showMenuAt = targetWindow.PointToScreen(Mouse.GetPosition(targetWindow));
 
 			SystemMenuManager.ShowMenu(targetWindow, showMenuAt);
 		}
@@ -250,7 +225,8 @@ namespace AddonManager
 		internal static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
 
 		[DllImport("user32.dll")]
-		internal static extern int TrackPopupMenuEx(IntPtr hmenu, uint fuFlags, int x, int y, IntPtr hwnd, IntPtr lptpm);
+		internal static extern int
+			TrackPopupMenuEx(IntPtr hmenu, uint fuFlags, int x, int y, IntPtr hwnd, IntPtr lptpm);
 
 		[DllImport("user32.dll")]
 		internal static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
@@ -261,7 +237,6 @@ namespace AddonManager
 
 	public class WindowMinimizeCommand : ICommand
 	{
-
 		public bool CanExecute(object parameter)
 		{
 			return true;
@@ -271,12 +246,7 @@ namespace AddonManager
 
 		public void Execute(object parameter)
 		{
-			var window = parameter as Window;
-
-			if (window != null)
-			{
-				window.WindowState = WindowState.Minimized;
-			}
+			if (parameter is Window window) window.WindowState = WindowState.Minimized;
 		}
 	}
 
@@ -284,7 +254,7 @@ namespace AddonManager
 	{
 		public static Window GetTopLeftResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(TopLeftResize);
+			return (Window) obj.GetValue(TopLeftResize);
 		}
 
 		public static void SetTopLeftResize(DependencyObject obj, Window window)
@@ -298,17 +268,12 @@ namespace AddonManager
 
 		private static void OnTopLeftResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragTopLeft;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragTopLeft;
 		}
 
 		public static Window GetTopRightResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(TopRightResize);
+			return (Window) obj.GetValue(TopRightResize);
 		}
 
 		public static void SetTopRightResize(DependencyObject obj, Window window)
@@ -322,17 +287,12 @@ namespace AddonManager
 
 		private static void OnTopRightResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragTopRight;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragTopRight;
 		}
 
 		public static Window GetBottomRightResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(BottomRightResize);
+			return (Window) obj.GetValue(BottomRightResize);
 		}
 
 		public static void SetBottomRightResize(DependencyObject obj, Window window)
@@ -340,23 +300,19 @@ namespace AddonManager
 			obj.SetValue(BottomRightResize, window);
 		}
 
-		public static readonly DependencyProperty BottomRightResize = DependencyProperty.RegisterAttached("BottomRightResize",
+		public static readonly DependencyProperty BottomRightResize = DependencyProperty.RegisterAttached(
+			"BottomRightResize",
 			typeof(Window), typeof(WindowResizeBehavior),
 			new UIPropertyMetadata(null, OnBottomRightResizeChanged));
 
 		private static void OnBottomRightResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragBottomRight;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragBottomRight;
 		}
 
 		public static Window GetBottomLeftResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(BottomLeftResize);
+			return (Window) obj.GetValue(BottomLeftResize);
 		}
 
 		public static void SetBottomLeftResize(DependencyObject obj, Window window)
@@ -364,23 +320,19 @@ namespace AddonManager
 			obj.SetValue(BottomLeftResize, window);
 		}
 
-		public static readonly DependencyProperty BottomLeftResize = DependencyProperty.RegisterAttached("BottomLeftResize",
+		public static readonly DependencyProperty BottomLeftResize = DependencyProperty.RegisterAttached(
+			"BottomLeftResize",
 			typeof(Window), typeof(WindowResizeBehavior),
 			new UIPropertyMetadata(null, OnBottomLeftResizeChanged));
 
 		private static void OnBottomLeftResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragBottomLeft;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragBottomLeft;
 		}
 
 		public static Window GetLeftResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(LeftResize);
+			return (Window) obj.GetValue(LeftResize);
 		}
 
 		public static void SetLeftResize(DependencyObject obj, Window window)
@@ -394,17 +346,12 @@ namespace AddonManager
 
 		private static void OnLeftResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragLeft;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragLeft;
 		}
 
 		public static Window GetRightResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(RightResize);
+			return (Window) obj.GetValue(RightResize);
 		}
 
 		public static void SetRightResize(DependencyObject obj, Window window)
@@ -418,17 +365,12 @@ namespace AddonManager
 
 		private static void OnRightResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragRight;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragRight;
 		}
 
 		public static Window GetTopResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(TopResize);
+			return (Window) obj.GetValue(TopResize);
 		}
 
 		public static void SetTopResize(DependencyObject obj, Window window)
@@ -442,17 +384,12 @@ namespace AddonManager
 
 		private static void OnTopResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragTop;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragTop;
 		}
 
 		public static Window GetBottomResize(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(BottomResize);
+			return (Window) obj.GetValue(BottomResize);
 		}
 
 		public static void SetBottomResize(DependencyObject obj, Window window)
@@ -466,48 +403,39 @@ namespace AddonManager
 
 		private static void OnBottomResizeChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var thumb = sender as Thumb;
-
-			if (thumb != null)
-			{
-				thumb.DragDelta += DragBottom;
-			}
+			if (sender is Thumb thumb) thumb.DragDelta += DragBottom;
 		}
 
 		private static void DragLeft(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
-			var window = thumb.GetValue(LeftResize) as Window;
+			Thumb thumb = sender as Thumb;
 
-			if (window != null)
+			if (thumb.GetValue(LeftResize) is Window window)
 			{
-				var horizontalChange = window.SafeWidthChange(e.HorizontalChange, false);
+				double horizontalChange = window.SafeWidthChange(e.HorizontalChange, false);
 				window.Width -= horizontalChange;
 				window.Left += horizontalChange;
-
 			}
 		}
 
 		private static void DragRight(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
-			var window = thumb.GetValue(RightResize) as Window;
+			Thumb thumb = sender as Thumb;
 
-			if (window != null)
+			if (thumb.GetValue(RightResize) is Window window)
 			{
-				var horizontalChange = window.SafeWidthChange(e.HorizontalChange);
+				double horizontalChange = window.SafeWidthChange(e.HorizontalChange);
 				window.Width += horizontalChange;
 			}
 		}
 
 		private static void DragTop(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
-			var window = thumb.GetValue(TopResize) as Window;
+			Thumb thumb = sender as Thumb;
 
-			if (window != null)
+			if (thumb.GetValue(TopResize) is Window window)
 			{
-				var verticalChange = window.SafeHeightChange(e.VerticalChange, false);
+				double verticalChange = window.SafeHeightChange(e.VerticalChange, false);
 				window.Height -= verticalChange;
 				window.Top += verticalChange;
 			}
@@ -515,26 +443,23 @@ namespace AddonManager
 
 		private static void DragBottom(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
-			var window = thumb.GetValue(BottomResize) as Window;
+			Thumb thumb = sender as Thumb;
 
-			if (window != null)
+			if (thumb.GetValue(BottomResize) is Window window)
 			{
-				var verticalChange = window.SafeHeightChange(e.VerticalChange);
+				double verticalChange = window.SafeHeightChange(e.VerticalChange);
 				window.Height += verticalChange;
 			}
 		}
 
 		private static void DragTopLeft(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
+			Thumb thumb = sender as Thumb;
 
-			var window = thumb.GetValue(TopLeftResize) as Window;
-
-			if (window != null)
+			if (thumb.GetValue(TopLeftResize) is Window window)
 			{
-				var verticalChange = window.SafeHeightChange(e.VerticalChange, false);
-				var horizontalChange = window.SafeWidthChange(e.HorizontalChange, false);
+				double verticalChange = window.SafeHeightChange(e.VerticalChange, false);
+				double horizontalChange = window.SafeWidthChange(e.HorizontalChange, false);
 
 				window.Width -= horizontalChange;
 				window.Left += horizontalChange;
@@ -545,13 +470,12 @@ namespace AddonManager
 
 		private static void DragTopRight(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
-			var window = thumb.GetValue(TopRightResize) as Window;
+			Thumb thumb = sender as Thumb;
 
-			if (window != null)
+			if (thumb.GetValue(TopRightResize) is Window window)
 			{
-				var verticalChange = window.SafeHeightChange(e.VerticalChange, false);
-				var horizontalChange = window.SafeWidthChange(e.HorizontalChange);
+				double verticalChange = window.SafeHeightChange(e.VerticalChange, false);
+				double horizontalChange = window.SafeWidthChange(e.HorizontalChange);
 
 				window.Width += horizontalChange;
 				window.Height -= verticalChange;
@@ -561,13 +485,12 @@ namespace AddonManager
 
 		private static void DragBottomRight(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
-			var window = thumb.GetValue(BottomRightResize) as Window;
+			Thumb thumb = sender as Thumb;
 
-			if (window != null)
+			if (thumb.GetValue(BottomRightResize) is Window window)
 			{
-				var verticalChange = window.SafeHeightChange(e.VerticalChange);
-				var horizontalChange = window.SafeWidthChange(e.HorizontalChange);
+				double verticalChange = window.SafeHeightChange(e.VerticalChange);
+				double horizontalChange = window.SafeWidthChange(e.HorizontalChange);
 
 				window.Width += horizontalChange;
 				window.Height += verticalChange;
@@ -576,13 +499,12 @@ namespace AddonManager
 
 		private static void DragBottomLeft(object sender, DragDeltaEventArgs e)
 		{
-			var thumb = sender as Thumb;
-			var window = thumb.GetValue(BottomLeftResize) as Window;
+			Thumb thumb = sender as Thumb;
 
-			if (window != null)
+			if (thumb.GetValue(BottomLeftResize) is Window window)
 			{
-				var verticalChange = window.SafeHeightChange(e.VerticalChange);
-				var horizontalChange = window.SafeWidthChange(e.HorizontalChange, false);
+				double verticalChange = window.SafeHeightChange(e.VerticalChange);
+				double horizontalChange = window.SafeWidthChange(e.HorizontalChange, false);
 
 				window.Width -= horizontalChange;
 				window.Left += horizontalChange;
@@ -592,52 +514,33 @@ namespace AddonManager
 
 		private static double SafeWidthChange(this Window window, double change, bool positive = true)
 		{
-			var result = positive ? window.Width + change : window.Width - change;
+			double result = positive ? window.Width + change : window.Width - change;
 
 			if (result <= window.MinWidth)
-			{
 				return 0;
-			}
-			else if (result >= window.MaxWidth)
-			{
+			if (result >= window.MaxWidth)
 				return 0;
-			}
-			else if (result < 0)
-			{
+			if (result < 0)
 				return 0;
-			}
-			else
-			{
-				return change;
-			}
+			return change;
 		}
 
 		private static double SafeHeightChange(this Window window, double change, bool positive = true)
 		{
-			var result = positive ? window.Height + change : window.Height - change;
+			double result = positive ? window.Height + change : window.Height - change;
 
 			if (result <= window.MinHeight)
-			{
 				return 0;
-			}
-			else if (result >= window.MaxHeight)
-			{
+			if (result >= window.MaxHeight)
 				return 0;
-			}
-			else if (result < 0)
-			{
+			if (result < 0)
 				return 0;
-			}
-			else
-			{
-				return change;
-			}
+			return change;
 		}
 	}
 
 	public class WindowMaximizeCommand : ICommand
 	{
-
 		public bool CanExecute(object parameter)
 		{
 			return true;
@@ -647,19 +550,10 @@ namespace AddonManager
 
 		public void Execute(object parameter)
 		{
-			var window = parameter as Window;
-
-			if (window != null)
-			{
-				if (window.WindowState == WindowState.Maximized)
-				{
-					window.WindowState = WindowState.Normal;
-				}
-				else
-				{
-					window.WindowState = WindowState.Maximized;
-				}
-			}
+			if (parameter is Window window)
+				window.WindowState = window.WindowState == WindowState.Maximized
+					? WindowState.Normal
+					: WindowState.Maximized;
 		}
 	}
 
@@ -667,7 +561,7 @@ namespace AddonManager
 	{
 		public static Window GetLeftMouseButtonDrag(DependencyObject obj)
 		{
-			return (Window)obj.GetValue(LeftMouseButtonDrag);
+			return (Window) obj.GetValue(LeftMouseButtonDrag);
 		}
 
 		public static void SetLeftMouseButtonDrag(DependencyObject obj, Window window)
@@ -675,31 +569,21 @@ namespace AddonManager
 			obj.SetValue(LeftMouseButtonDrag, window);
 		}
 
-		public static readonly DependencyProperty LeftMouseButtonDrag = DependencyProperty.RegisterAttached("LeftMouseButtonDrag",
+		public static readonly DependencyProperty LeftMouseButtonDrag = DependencyProperty.RegisterAttached(
+			"LeftMouseButtonDrag",
 			typeof(Window), typeof(WindowDragBehavior),
 			new UIPropertyMetadata(null, OnLeftMouseButtonDragChanged));
 
 		private static void OnLeftMouseButtonDragChanged(object sender, DependencyPropertyChangedEventArgs e)
 		{
-			var element = sender as UIElement;
-
-			if (element != null)
-			{
-				element.MouseLeftButtonDown += ButtonDown;
-
-			}
+			if (sender is UIElement element) element.MouseLeftButtonDown += ButtonDown;
 		}
 
-		private static void ButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private static void ButtonDown(object sender, MouseButtonEventArgs e)
 		{
-			var element = sender as UIElement;
+			UIElement element = sender as UIElement;
 
-			var targetWindow = element.GetValue(LeftMouseButtonDrag) as Window;
-
-			if (targetWindow != null)
-			{
-				targetWindow.DragMove();
-			}
+			if (element.GetValue(LeftMouseButtonDrag) is Window targetWindow) targetWindow.DragMove();
 		}
 	}
 #pragma warning restore IDE0019 // Use pattern matching

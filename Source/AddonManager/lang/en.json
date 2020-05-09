@@ -13,7 +13,8 @@
     "SETTINGS": {
         "NEED_UPDATE": "Update needed!",
         "DOWNLOAD": "Download",
-        "CONFIGURE_FOLDER": "Configure your settings below.\rPlease specify your Tree of Savior install directory path.",
+        "CONFIGURE_FOLDER":
+            "Configure your settings below.\rPlease specify your Tree of Savior install directory path.",
         "OPEN_FOLDER_BROWSE_DIALOG": "Browse...",
         "INVALID_FOLDER": "Invalid directory. Please set a proper Tree of Savior directory before continuing.",
         "INSTALLATION_HISTORY": "Installation History:",
@@ -26,7 +27,7 @@
         "ALL": "All",
         "INSTALLED": "Installed",
         "UNINSTALLED": "Uninstalled",
-        "SHOW_ONLY_UPDATABLE": "Show only updatable",
+        "SHOW_ONLY_UPDATABLE": "Show only updateable",
         "UPDATE_ALL_ADDONS": "Update all",
         "SORT_BY_NAME_ASC": "Name(asc)",
         "SORT_BY_NAME_DESC": "Name(desc)",
@@ -43,7 +44,7 @@
         "UPDATE_LIST_SUCCESS": " has been updated.",
         "UPDATE_LIST_BLANK": "There are no addons to update."
     },
-        "TOS": {
+    "TOS": {
         "SITE_URL": "https://treeofsavior.com"
     }
 }

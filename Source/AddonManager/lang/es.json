@@ -1,48 +1,49 @@
 {
- "TAB": {
-  "SETTINGS": "Opciones",
-  "ITOS": "IToS",
-  "JTOS": "JToS"
- },
- "FOOTER": {
-  "RELOAD": "Recargar",
-  "SCROLL_TO_TOP": "Ir arriba",
-  "OPEN_OFFICIAL_SITE": "Ir al sitio oficial"
- },
- "SETTINGS": {
-  "NEED_UPDATE": "Hay una actualización disponible",
-  "DOWNLOAD": "Descargar",
-  "CONFIGURE_FOLDER": "Configura tus opciones abajo. Por favor especifica la ubicación del directorio de Tree Of Savior",
-  "OPEN_FOLDER_BROWSE_DIALOG": "Buscar...",
-  "INVALID_FOLDER": "Directorio inválido. Por favor especifica correctamente el directorio de Tree Of Savior",
-  "INSTALLATION_HISTORY": "Historial de Instalación:",
-  "CLEAR": "Limpiar",
-  "CLEAR_DEFAULT_ERROR": "Error de inicialización: no se encontró el archivo requerido.",
-  "DISPLAY_UNKNOWN": "Display Unknown Installed Addons"
- },
- "BROWSE": {
-  "SEARCH": "Buscar",
-  "ALL": "Todo",
-  "INSTALLED": "Instalado",
-  "UNINSTALLED": "Desinstalado",
-  "SHOW_ONLY_UPDATABLE": "Mostrar sólo actualizables",
-  "UPDATE_ALL_ADDONS": "Actualizar todo",
-  "SORT_BY_NAME_ASC": "Nombre(asc)",
-  "SORT_BY_NAME_DESC": "Nombre(desc)",
-  "SORT_BY_DATE_ASC": "Fecha(asc)",
-  "SORT_BY_DATE_DESC": "Fecha(desc)",
-  "SORT_BY_DEVELOPER_NAME": "Desarrollador"
- },
- "ADDONS": {
-  "README": "Léeme",
-  "CLOSE_README": "Cerrar",
-  "INSTALL": "Instalar",
-  "UPDATE": "Actualizar",
-  "UNINSTALL": "Desinstalar",
-  "UPDATE_LIST_SUCCESS": " han sido actualizados.",
-  "UPDATE_LIST_BLANK": "No hay addons para actualizar."
- },
- "TOS": {
-  "SITE_URL": "https://treeofsavior.com"
- }
+    "TAB": {
+        "SETTINGS": "Opciones",
+        "ITOS": "IToS",
+        "JTOS": "JToS"
+    },
+    "FOOTER": {
+        "RELOAD": "Recargar",
+        "SCROLL_TO_TOP": "Ir arriba",
+        "OPEN_OFFICIAL_SITE": "Ir al sitio oficial"
+    },
+    "SETTINGS": {
+        "NEED_UPDATE": "Hay una actualización disponible",
+        "DOWNLOAD": "Descargar",
+        "CONFIGURE_FOLDER":
+            "Configura tus opciones abajo. Por favor especifica la ubicación del directorio de Tree Of Savior",
+        "OPEN_FOLDER_BROWSE_DIALOG": "Buscar...",
+        "INVALID_FOLDER": "Directorio inválido. Por favor especifica correctamente el directorio de Tree Of Savior",
+        "INSTALLATION_HISTORY": "Historial de Instalación:",
+        "CLEAR": "Limpiar",
+        "CLEAR_DEFAULT_ERROR": "Error de inicialización: no se encontró el archivo requerido.",
+        "DISPLAY_UNKNOWN": "Display Unknown Installed Addons"
+    },
+    "BROWSE": {
+        "SEARCH": "Buscar",
+        "ALL": "Todo",
+        "INSTALLED": "Instalado",
+        "UNINSTALLED": "Desinstalado",
+        "SHOW_ONLY_UPDATABLE": "Mostrar sólo actualizables",
+        "UPDATE_ALL_ADDONS": "Actualizar todo",
+        "SORT_BY_NAME_ASC": "Nombre(asc)",
+        "SORT_BY_NAME_DESC": "Nombre(desc)",
+        "SORT_BY_DATE_ASC": "Fecha(asc)",
+        "SORT_BY_DATE_DESC": "Fecha(desc)",
+        "SORT_BY_DEVELOPER_NAME": "Desarrollador"
+    },
+    "ADDONS": {
+        "README": "Léeme",
+        "CLOSE_README": "Cerrar",
+        "INSTALL": "Instalar",
+        "UPDATE": "Actualizar",
+        "UNINSTALL": "Desinstalar",
+        "UPDATE_LIST_SUCCESS": " han sido actualizados.",
+        "UPDATE_LIST_BLANK": "No hay addons para actualizar."
+    },
+    "TOS": {
+        "SITE_URL": "https://treeofsavior.com"
+    }
 }

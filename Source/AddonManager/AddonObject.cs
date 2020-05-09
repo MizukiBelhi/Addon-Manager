@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Semver;
 
 namespace AddonManager
 {
+#pragma warning disable 660,661
 	public class AddonObject
+#pragma warning restore 660,661
 	{
 		public int Id { get; set; }
 
@@ -25,30 +23,41 @@ namespace AddonManager
 		public List<ManagersDependency> dependencies { get; set; }
 #pragma warning restore IDE1006 // Naming Styles
 
-		public bool IsQueued = false;
-		public SemVersion semversion = null;
+		public bool IsQueued;
+		public SemVersion semversion;
+		public long date = 0;
+		public string readdate = "";
 
 		public void SetDefaults()
 		{
-			this.isNewest = true;
-			this.isInstalled = true;
-			this.isUnknown = true;
-			this.isUnknownInstalled = true;
-			this.isOutdated = false;
-			this.addon.name = this.addon.file;
-			this.addon.description = "";
-			this.repo = "unknown/unknown";
-			this.IsQueued = false;
+			isNewest = true;
+			isInstalled = true;
+			isUnknown = true;
+			isUnknownInstalled = true;
+			isOutdated = false;
+			addon.name = addon.file;
+			addon.description = "";
+			repo = "unknown/unknown";
+			IsQueued = false;
 		}
 
 		public bool HasError()
 		{
-			return this.isReported || this.isOutdated || this.isUnknown;
+			return isReported || isOutdated || isUnknown;
+		}
+
+		public void SetupBroken()
+		{
+			if (semversion == null)
+				InitSemver();
+
+			isReported = BrokenAddons.IsBrokenAddon(this);
+			isOutdated = BrokenAddons.IsOutdatedAddon(this);
 		}
 
 		public void InitSemver()
 		{
-			semversion = SemVersion.Parse(this.addon.fileVersion.Remove(0, 1));
+			semversion = SemVersion.Parse(addon.fileVersion.Remove(0, 1));
 		}
 
 		public bool IsNewerThan(AddonObject other)
@@ -94,36 +103,37 @@ namespace AddonManager
 		{
 			return a.IsOlderThan(b);
 		}
+
 		public static bool operator >(AddonObject a, AddonObject b)
 		{
 			return a.IsNewerThan(b);
 		}
+
 		public static bool operator <=(AddonObject a, AddonObject b)
 		{
-			return (!(a > b));
+			return !(a > b);
 		}
+
 		public static bool operator >=(AddonObject a, AddonObject b)
 		{
-			return (!(a < b));
+			return !(a < b);
 		}
+
 		public static bool operator ==(AddonObject a, AddonObject b)
 		{
-			if (object.ReferenceEquals(a, null))
-				return object.ReferenceEquals(b, null);
-			if (object.ReferenceEquals(b, null))
-				return object.ReferenceEquals(a, null);
-
-			return a.IsSameAs(b);
+			if (ReferenceEquals(a, null))
+				return ReferenceEquals(b, null);
+			return !ReferenceEquals(b, null) && a.IsSameAs(b);
 		}
+
 		public static bool operator !=(AddonObject a, AddonObject b)
 		{
-			if (object.ReferenceEquals(a, null))
-				return !object.ReferenceEquals(b, null);
-			if (object.ReferenceEquals(b, null))
-				return !object.ReferenceEquals(a, null);
+			if (ReferenceEquals(a, null))
+				return !ReferenceEquals(b, null);
+			if (ReferenceEquals(b, null))
+				return true;
 
 			return !a.IsSameAs(b);
 		}
 	}
-
 }
