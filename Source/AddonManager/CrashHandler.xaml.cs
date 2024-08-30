@@ -16,7 +16,7 @@ namespace AddonManager
 
 		public void Crash(string message, string stack)
 		{
-			trace = message + "\r\r" + stack;
+			trace = message + System.Environment.NewLine + stack;
 			StackTrace.Text = trace;
 		}
 

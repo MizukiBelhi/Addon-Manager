@@ -36,7 +36,7 @@ namespace AddonManager
 			//We still load them after, for people who want to add new languages or change existing ones.
 			try
 			{
-				var dirFiles = Directory.GetFiles(JsonManager.ProgramFolder + "lang/", "*.json");
+				var dirFiles = Directory.GetFiles(JsonManager.ProgramFolder + "lang" + Path.DirectorySeparatorChar, "*.json");
 
 				foreach (string file in dirFiles)
 				{
@@ -45,7 +45,7 @@ namespace AddonManager
 
 					Debug.WriteLine("Trying: " + langName);
 
-					LanguageDataObject langObj = JsonManager.LoadFile<LanguageDataObject>("lang/" + fileName);
+					LanguageDataObject langObj = JsonManager.LoadFile<LanguageDataObject>("lang" + Path.DirectorySeparatorChar + fileName);
 
 					//Overwrite if it exists, otherwise add
 					if (translationData.ContainsKey(langName.ToLower()))

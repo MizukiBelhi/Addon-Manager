@@ -12,7 +12,7 @@ namespace AddonManager
 		/// <summary>
 		/// exe folder location
 		/// </summary>
-		public static string ProgramFolder => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/";
+		public static string ProgramFolder => Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + Path.DirectorySeparatorChar;
 
 
 		/// <summary>

@@ -218,7 +218,7 @@ namespace AddonManager
 		/// </summary>
 		private static void CreateAddonFolder(AddonsObject addon)
 		{
-			JsonManager.CreateFolder(MainWindow.settings.TosAddonFolder + @"\" + addon.file);
+			JsonManager.CreateFolder(MainWindow.settings.TosAddonFolder + Path.DirectorySeparatorChar + addon.file);
 		}
 
 		/// <summary>
@@ -226,7 +226,7 @@ namespace AddonManager
 		/// </summary>
 		private static void RemoveAddonFolder(AddonsObject addon)
 		{
-			JsonManager.DeleteFolder(MainWindow.settings.TosAddonFolder + @"\" + addon.file);
+			JsonManager.DeleteFolder(MainWindow.settings.TosAddonFolder + Path.DirectorySeparatorChar + addon.file);
 		}
 
 		/// <summary>

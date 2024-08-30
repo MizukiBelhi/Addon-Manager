@@ -186,19 +186,19 @@ namespace AddonManager
 				folderError = true;
 			}
 
-			if (!JsonManager.DirectoryExists(settings.TosFolder + @"\release"))
+			if (!JsonManager.DirectoryExists(settings.TosFolder + System.IO.Path.DirectorySeparatorChar + "release"))
 			{
 				Debug.WriteLine("Folder release doesn't exist");
 				folderError = true;
 			}
 
-			if (!JsonManager.FileExists(settings.TosFolder + @"\release\Client_tos.exe"))
+			if (!JsonManager.FileExists(settings.TosFolder + System.IO.Path.DirectorySeparatorChar + "release" + System.IO.Path.DirectorySeparatorChar + "Client_tos.exe"))
 			{
 				Debug.WriteLine("Client.exe doesn't exist");
 				folderError = true;
 			}
 
-			if (!JsonManager.DirectoryExists(settings.TosFolder + @"\data"))
+			if (!JsonManager.DirectoryExists(settings.TosFolder + System.IO.Path.DirectorySeparatorChar + "data"))
 			{
 				Debug.WriteLine("Folder data doesn't exist");
 				folderError = true;
