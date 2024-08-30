@@ -120,7 +120,6 @@ namespace AddonManagerUpdater
 
 			string fileS = System.Text.RegularExpressions.Regex.Replace(file, @"\t|\n|\r", "");
 			Uri fileUri = new Uri("https://github.com/MizukiBelhi/Addon-Manager/raw/master/bin/" + fileS);
-			//Uri fileUri = new Uri("https://speed.hetzner.de/100MB.bin");
 
 			currentFileName = fileS;
 
@@ -133,7 +132,7 @@ namespace AddonManagerUpdater
 					wc.Headers.Add("User-Agent: Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)");
 					wc.DownloadProgressChanged += OnDownloadUpdate;
 					wc.DownloadFileCompleted += OnDownloadFinished;
-					wc.DownloadFileAsync(fileUri, Environment.CurrentDirectory + "\\" + fileS);
+					wc.DownloadFileAsync(fileUri, Environment.CurrentDirectory + System.IO.Path.DirectorySeparatorChar + fileS);
 				}
 
 			}
